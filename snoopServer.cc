@@ -101,7 +101,7 @@ snoopServer::~snoopServer(void)
 {
   // Clear the pvList
 #if EPICS_REVISION > 13
-    pvList.traverse(dataNode::destroy);
+    pvList.traverse(&dataNode::destroy);
 #else
     pvList.destroyAllEntries();
 #endif
@@ -509,7 +509,7 @@ void snoopServer::reset(void)
 {
   // Clear the pvList
 #if EPICS_REVISION > 13
-    pvList.traverse(dataNode::destroy);
+    pvList.traverse(&dataNode::destroy);
 #else
     pvList.destroyAllEntries();
 #endif
