@@ -1,8 +1,6 @@
 # Makefile.Host for Performance Test Example Server
 
-CAS = ../../..
-TOP = $(CAS)/../..
-
+TOP = ../../..
 include $(TOP)/config/CONFIG_EXTENSIONS
 
 #EPICS_BASE = /home/phoebus/EVANS/epics/baseGatewayOpt

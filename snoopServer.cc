@@ -22,10 +22,10 @@ unsigned long dataNode::nodeCount=0;
 snoopData *dataNode::dataArray=(snoopData *)0;
 
 char connTable[][10]={
-    "Never",
-    "Previous",
-    "Connected",
-    "Closed",
+    "Not",     /* cs_never_conn */
+    "Not",     /* cs_prev_conn */
+    "OK",      /* cs_conn */
+    "Not",     /* cs_closed */
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -371,7 +371,7 @@ void snoopServer::report(void)
 	    ptr=strchr(name,DELIMITER);
 	    if(ptr) *ptr='\0';
 	    else ptr=name;
-	    printf("%4ld %-20s %-33s %-9s %.2f\n",i+1,ptr+1,name,
+	    printf("%4ld %-20s %-33s %-3s %.2f\n",i+1,ptr+1,name,
 	      connTable[ca_state(pChid[i])],
 	      dataArray[ii].getCount()/processTime);
 	}
