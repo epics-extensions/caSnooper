@@ -1,19 +1,19 @@
 
 file {
-	name="/home/phoebus5/EVANS/src/medm/snoopStats.adl"
-	version=020306
+	name="/home/phoebus3/EVANS/src/medm/snoopStats.adl"
+	version=030004
 }
 display {
 	object {
-		x=522
-		y=69
-		width=445
-		height=391
+		x=324
+		y=90
+		width=451
+		height=600
 	}
 	clr=14
 	bclr=2
 	cmap=""
-	gridSpacing=5
+	gridSpacing=15
 	gridOn=0
 	snapToGrid=1
 }
@@ -95,16 +95,16 @@ text {
 		height=40
 	}
 	"basic attribute" {
-		clr=12
+		clr=25
 	}
 	textix="CaSnooper"
 	align="horiz. centered"
 }
 "message button" {
 	object {
-		x=55
-		y=355
-		width=105
+		x=130
+		y=567
+		width=81
 		height=20
 	}
 	control {
@@ -117,9 +117,9 @@ text {
 }
 "message button" {
 	object {
-		x=170
-		y=355
-		width=105
+		x=226
+		y=567
+		width=81
 		height=20
 	}
 	control {
@@ -132,9 +132,9 @@ text {
 }
 "message button" {
 	object {
-		x=285
-		y=355
-		width=105
+		x=322
+		y=567
+		width=81
 		height=20
 	}
 	control {
@@ -148,7 +148,7 @@ text {
 text {
 	object {
 		x=87
-		y=318
+		y=537
 		width=270
 		height=15
 	}
@@ -161,7 +161,7 @@ text {
 composite {
 	object {
 		x=68
-		y=60
+		y=53
 		width=309
 		height=80
 	}
@@ -170,7 +170,7 @@ composite {
 		composite {
 			object {
 				x=68
-				y=60
+				y=53
 				width=309
 				height=20
 			}
@@ -179,7 +179,7 @@ composite {
 				"text update" {
 					object {
 						x=272
-						y=60
+						y=53
 						width=105
 						height=20
 					}
@@ -197,7 +197,7 @@ composite {
 				text {
 					object {
 						x=68
-						y=60
+						y=53
 						width=172
 						height=20
 					}
@@ -211,7 +211,7 @@ composite {
 		composite {
 			object {
 				x=68
-				y=90
+				y=83
 				width=309
 				height=20
 			}
@@ -220,7 +220,7 @@ composite {
 				"text update" {
 					object {
 						x=272
-						y=90
+						y=83
 						width=105
 						height=20
 					}
@@ -238,7 +238,7 @@ composite {
 				text {
 					object {
 						x=68
-						y=90
+						y=83
 						width=172
 						height=20
 					}
@@ -252,7 +252,7 @@ composite {
 		composite {
 			object {
 				x=68
-				y=120
+				y=113
 				width=309
 				height=20
 			}
@@ -261,7 +261,7 @@ composite {
 				"text update" {
 					object {
 						x=272
-						y=120
+						y=113
 						width=105
 						height=20
 					}
@@ -279,7 +279,7 @@ composite {
 				text {
 					object {
 						x=68
-						y=120
+						y=113
 						width=172
 						height=20
 					}
@@ -295,7 +295,7 @@ composite {
 composite {
 	object {
 		x=36
-		y=173
+		y=397
 		width=397
 		height=30
 	}
@@ -304,7 +304,7 @@ composite {
 		composite {
 			object {
 				x=36
-				y=173
+				y=397
 				width=309
 				height=30
 			}
@@ -313,7 +313,7 @@ composite {
 				text {
 					object {
 						x=36
-						y=178
+						y=402
 						width=172
 						height=20
 					}
@@ -325,7 +325,7 @@ composite {
 				"text entry" {
 					object {
 						x=240
-						y=173
+						y=397
 						width=105
 						height=30
 					}
@@ -343,7 +343,7 @@ composite {
 		"message button" {
 			object {
 				x=350
-				y=178
+				y=402
 				width=38
 				height=20
 			}
@@ -358,7 +358,7 @@ composite {
 		"message button" {
 			object {
 				x=395
-				y=178
+				y=402
 				width=38
 				height=20
 			}
@@ -375,7 +375,7 @@ composite {
 composite {
 	object {
 		x=36
-		y=208
+		y=432
 		width=397
 		height=30
 	}
@@ -384,7 +384,7 @@ composite {
 		composite {
 			object {
 				x=36
-				y=208
+				y=432
 				width=309
 				height=30
 			}
@@ -393,7 +393,7 @@ composite {
 				text {
 					object {
 						x=36
-						y=213
+						y=437
 						width=172
 						height=20
 					}
@@ -405,7 +405,7 @@ composite {
 				"text entry" {
 					object {
 						x=240
-						y=208
+						y=432
 						width=105
 						height=30
 					}
@@ -423,7 +423,7 @@ composite {
 		"message button" {
 			object {
 				x=350
-				y=213
+				y=437
 				width=38
 				height=20
 			}
@@ -438,7 +438,7 @@ composite {
 		"message button" {
 			object {
 				x=395
-				y=213
+				y=437
 				width=38
 				height=20
 			}
@@ -455,7 +455,7 @@ composite {
 composite {
 	object {
 		x=36
-		y=243
+		y=467
 		width=397
 		height=30
 	}
@@ -464,7 +464,7 @@ composite {
 		composite {
 			object {
 				x=36
-				y=243
+				y=467
 				width=309
 				height=30
 			}
@@ -473,7 +473,7 @@ composite {
 				text {
 					object {
 						x=36
-						y=248
+						y=472
 						width=172
 						height=20
 					}
@@ -485,7 +485,7 @@ composite {
 				"text entry" {
 					object {
 						x=240
-						y=243
+						y=467
 						width=105
 						height=30
 					}
@@ -503,7 +503,7 @@ composite {
 		"message button" {
 			object {
 				x=350
-				y=248
+				y=472
 				width=38
 				height=20
 			}
@@ -518,7 +518,7 @@ composite {
 		"message button" {
 			object {
 				x=395
-				y=248
+				y=472
 				width=38
 				height=20
 			}
@@ -535,7 +535,7 @@ composite {
 composite {
 	object {
 		x=36
-		y=278
+		y=502
 		width=397
 		height=30
 	}
@@ -544,7 +544,7 @@ composite {
 		composite {
 			object {
 				x=36
-				y=278
+				y=502
 				width=309
 				height=30
 			}
@@ -553,7 +553,7 @@ composite {
 				text {
 					object {
 						x=36
-						y=283
+						y=507
 						width=172
 						height=20
 					}
@@ -565,7 +565,7 @@ composite {
 				"text entry" {
 					object {
 						x=240
-						y=278
+						y=502
 						width=105
 						height=30
 					}
@@ -584,7 +584,7 @@ composite {
 		"message button" {
 			object {
 				x=350
-				y=283
+				y=507
 				width=38
 				height=20
 			}
@@ -599,7 +599,7 @@ composite {
 		"message button" {
 			object {
 				x=395
-				y=283
+				y=507
 				width=38
 				height=20
 			}
@@ -612,4 +612,74 @@ composite {
 			release_msg="0"
 		}
 	}
+}
+"cartesian plot" {
+	object {
+		x=25
+		y=149
+		width=400
+		height=205
+	}
+	plotcom {
+		title="Request Rate (Hz)"
+		clr=14
+		bclr=1
+	}
+	style="line"
+	erase_oldest="plot last n pts"
+	count="100"
+	trace[0] {
+		ydata="CaSnoop.requestRate"
+		data_clr=25
+	}
+	trace[1] {
+		ydata="CaSnoop.individualRate"
+		data_clr=36
+	}
+	y1_axis {
+		rangeStyle="auto-scale"
+		maxRange=500.000000
+	}
+	y2_axis {
+		rangeStyle="auto-scale"
+	}
+}
+text {
+	object {
+		x=36
+		y=360
+		width=369
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="(Blue=requestRate Magenta=individualRate)"
+	align="horiz. centered"
+}
+"shell command" {
+	object {
+		x=98
+		y=568
+		width=17
+		height=18
+	}
+	command[0] {
+		label="Start CaSnooper"
+		name="xterm -geometry 80x50+5+5 -fg black -bg white -title CaSnooper -mb -sk -sb -sl 512 -e runCaSnooper &"
+	}
+	clr=0
+	bclr=10
+}
+text {
+	object {
+		x=48
+		y=570
+		width=45
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Start"
 }

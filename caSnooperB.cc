@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 #include "osiTimer.h"
+#include "caSnooperBVersion.h"
 #include "snoopClient.h"
 #include "snoopCA.h"
 #include "ut.h"
@@ -191,8 +192,6 @@ void processUDPMsg(const struct sockaddr_in *net_addr,
 	ifirst=0;
     }
 
-    UNREFERENCED(net_addr);
-
   // Convert in address to name
     if(in_addr) {
 	ipAddrToA(in_addr,iocName,sizeof(iocName));
@@ -214,6 +213,6 @@ void usage()
       "    -p<integer>  Print top n requests (0 means all)\n"
       "    -t<decimal>  Run n seconds, then print report\n"
       "\n", 
-      VERSION);
+      CASNOOPERB_VERSION_STRING);
 	
 }

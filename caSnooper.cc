@@ -103,7 +103,6 @@ extern int main(int argc, const char **argv)
   // Start
     print("Starting %s at %s\n",CASNOOPER_VERSION_STRING,timeStamp());
     print("%s\n",EPICS_VERSION_STRING);
-    if(doStats) print("PV name prefix is %s\n",prefix);
 
   // Create the server
     pCAS = new snoopServer(prefix,individualName,nCheck,nPrint,nSigma,nLimit);
@@ -113,6 +112,8 @@ extern int main(int argc, const char **argv)
     }
     pCAS->setDebugLevel(debugLevel);
     pCAS->disable();
+    if(doStats) print("PV name prefix is %s\n",
+      pCAS->getPrefix()?pCAS->getPrefix():"NULL");
     
   // Main loop
     osiTime begin(osiTime::getCurrent());
