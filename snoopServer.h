@@ -28,8 +28,6 @@
 
 #include "caSnooperVersion.h"
 
-#define VERSION "CaSnooper 2.0"
-
 #define SS_OK 0
 #define SS_ERROR -1
 
@@ -193,6 +191,8 @@ class snoopServer : public caServer
     int doReset(void) const { return resetFlag; };
     int doQuit(void) const { return quitFlag; };
     pvExistReturn pvExistTest(const casCtx &ctx, const char *pPvName);
+    pvExistReturn pvExistTest(const casCtx& ctx, const caNetAddr& addr,
+      const char* pvname);
     pvCreateReturn createPV(const casCtx &ctx, const char *pPvName);
     
     resTable<dataNode,stringId> *getPvList(void) { return &pvList; }
@@ -206,6 +206,7 @@ class snoopServer : public caServer
     void clearStat(int type);
     void initStats(char *prefix);
     const char *getPrefix(void) const { return statPrefix; }
+    const char *getIndividualName(void) const { return individualName; }
 
     unsigned long getRequestCount() const { return requestCount; }
     unsigned long getIndividualCount() const { return individualCount; }

@@ -112,8 +112,14 @@ extern int main(int argc, const char **argv)
     }
     pCAS->setDebugLevel(debugLevel);
     pCAS->disable();
-    if(doStats) print("PV name prefix is %s\n",
-      pCAS->getPrefix()?pCAS->getPrefix():"NULL");
+    print("Individual Name is %s\n",
+      pCAS->getIndividualName()?pCAS->getIndividualName():"NULL");
+    if(doStats) {
+	print("PV name prefix is %s\n",
+	  pCAS->getPrefix()?pCAS->getPrefix():"NULL");
+    } else {
+	print("Internal PV names are not being published\n");
+    }
     
   // Main loop
     osiTime begin(osiTime::getCurrent());
@@ -223,5 +229,5 @@ void usage()
       "    -t<decimal>  Run n seconds, then print report\n"
       "    -w<decimal>  Wait n sec before collecting data\n"
       "\n", 
-      VERSION,EPICS_VERSION_STRING,PREFIX_SIZE-1,DEFAULT_PREFIX);
+      CASNOOPER_VERSION_STRING,EPICS_VERSION_STRING,PREFIX_SIZE-1,DEFAULT_PREFIX);
 }

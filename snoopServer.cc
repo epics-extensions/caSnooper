@@ -23,15 +23,21 @@
 
 #define ULONG_DIFF(n1,n2) (((n1) >= (n2))?((n1)-(n2)):((n1)+(ULONG_MAX-(n2))))
 
+#define HOST_NAMESIZE 256
+
+#if EPICS_REVISION > 13
+#include <osiSock.h>
+#else
+#include <bsdSocketResource.h>
 // server.h is private and not in base/include.  We are including it
 // so we can access casCtx, which is not normally possible (by
 // intent).  Note: The src files have to be available to do this.
-#  define HOST_NAMESIZE 256
-#  include "server.h"
+#include "server.h"
 inline casCoreClient * casCtx::getClient() const 
 {
     return this->pClient;
 }
+#endif
 
 // Static initializations
 unsigned long dataNode::nodeCount=0;
@@ -108,10 +114,28 @@ void snoopServer::clearStat(int type)
 }
 
 // snoopServer::pvExistTest ////////////////////////////////////////////
-pvExistReturn snoopServer::pvExistTest(const casCtx& ctxIn, const char *pvName)
+// This function is called by Base 3.13 and earlier
+pvExistReturn snoopServer::pvExistTest(const casCtx& ctx, const char *pvName)
 {
-    casClient *pClient;
-    pClient=(casClient *)ctxIn.getClient();
+#if EPICS_REVISION > 13
+    return pverDoesNotExistHere;
+#else
+    casClient *pClient=(casClient *)ctx.getClient();
+
+  // Return if data taking is not enabled
+    if(!enabled) return pverDoesNotExistHere;
+
+  // Get the caNetAddr
+    caNetAddr &addr=pClient->fetchRespAddr();
+
+    return pvExistTest(ctx,addr,pvName);
+#endif
+}
+
+// This function is called by Base 3.14 and later
+pvExistReturn snoopServer::pvExistTest(const casCtx& ctx, const caNetAddr& addr,
+  const char* pvName)
+{
     char hostName[HOST_NAMESIZE]="";
     char name[NAMESIZE]="";
     dataNode *node=(dataNode *)0;
@@ -122,7 +146,8 @@ pvExistReturn snoopServer::pvExistTest(const casCtx& ctxIn, const char *pvName)
     requestCount++;
 
   // Make the hash name
-    pClient->clientHostName(hostName,HOST_NAMESIZE);
+    struct sockaddr_in inaddr=(struct sockaddr_in)addr;
+    ipAddrToA(&inaddr,hostName,HOST_NAMESIZE);
     strcpy(name,pvName);
     len=strlen(name);
     name[len++]=DELIMITER;
