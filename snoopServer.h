@@ -18,7 +18,7 @@
 // Interval for rate statistics in seconds
 #define RATE_STATS_INTERVAL 1u
 
-#define VERSION "CaSnooper 1.1"
+#define VERSION "CaSnooper 1.2 Beta1"
 
 #define SS_OK 0
 #define SS_ERROR -1
@@ -67,13 +67,6 @@ struct snoopServerStats
     short precision;
 };
 typedef struct snoopServerStats;
-
-// Function prototypes
-int errMsg(const char *fmt, ...);
-void hsort(double array[], unsigned long  indx[], unsigned long n);
-void print(const char *fmt, ...);
-char *timeStamp(void);
-struct timespec *timeSpec(void);
 
 class snoopRateStatsTimer : public osiTimer
 {
@@ -202,6 +195,3 @@ class snoopServer : public caServer
     unsigned long requestCount;
     unsigned long individualCount;
 };
-
-
-

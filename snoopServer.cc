@@ -1,14 +1,16 @@
 // CaSnooper: Server that logs broadcasts
 
-#include "snoopServer.h"
-#include "gddApps.h"
 #include <math.h>
 #include <cadef.h>
+#include "snoopServer.h"
+#include "ut.h"
+#include "gddApps.h"
 
 #define DEBUG_SORT 0
 #define DEBUG_HASH 0
 #define DEBUG_TIMER 0
 #define DEBUG_PROCESS_STAT 0
+#define DEBUG_STAT 0
 
 #define ULONG_DIFF(n1,n2) (((n1) >= (n2))?((n1)-(n2)):((n1)+(ULONG_MAX-(n2))))
 
@@ -235,7 +237,7 @@ void snoopServer::report(void)
     }
 
   // Loop over the nodes to get data for statistics
-    nRequests=0;
+    nRequests=nRequestsTotal=0;
     for(i=0; i < nNodes; i++) {
 	nRequests=dataArray[i].getCount();
 	nRequestsTotal+=nRequests;
@@ -593,6 +595,10 @@ void snoopServer::processStat(int type, double val)
 void snoopServer::setStat(int type, double val)
 {
     if(statTable[type].pv) statTable[type].pv->postData(val);
+#if DEBUG_STAT
+    print("snoopServer::setStat: type=%d val=%.2f\n",
+      type,val);
+#endif
 }
 
 void snoopServer::setStat(int type, unsigned long val)

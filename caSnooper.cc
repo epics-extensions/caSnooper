@@ -1,7 +1,12 @@
 // CaSnooper: Server that logs broadcasts
 
-#include "snoopServer.h"
+// The following are used for the modified base
+#define ALLOCATE_STORAGE
+#include "snoopCA.h"
+
 #include "fdManager.h"
+#include "snoopServer.h"
+#include "ut.h"
 
 // Interval for rate statistics in seconds
 #define RATE_STATS_INTERVAL 1u
@@ -82,7 +87,7 @@ extern int main(int argc, const char **argv)
     
     pCAS = new snoopServer(prefix,individualName,nCheck,nPrint,nSigma,nLimit);
     if(!pCAS) {
-	return (-1);
+	return(-1);
     }
     pCAS->setDebugLevel(debugLevel);
     pCAS->disable();
@@ -129,7 +134,7 @@ extern int main(int argc, const char **argv)
 
   // Print timing
     double elapsedTime=processedTime+start-begin;
-    print("\nCaSnopper terminating after %.2f seconds [%.2f minutes]\n",
+    print("\nCaSnooper terminating after %.2f seconds [%.2f minutes]\n",
       elapsedTime,elapsedTime/60.);
     print("  Data collected for %.2f seconds [%.2f minutes]\n",
       processedTime,processedTime/60.);
@@ -137,8 +142,11 @@ extern int main(int argc, const char **argv)
     print("\nServer Statistics:\n");
     pCAS->show(2u);
 #endif
+
+  // Do final report
     if(!forever) pCAS->report();
     delete pCAS;
+
     return(0);
 }
 

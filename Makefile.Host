@@ -6,6 +6,7 @@ include $(TOP)/config/CONFIG_EXTENSIONS
 #EPICS_BASE = /home/phoebus/EVANS/epics/baseGatewayOpt
 #EPICS_BASE = /home/phoebus/EVANS/epics/baseGateway
 #EPICS_BASE = /home/phoebus/EVANS/epics/baseLatest
+EPICS_BASE = /home/phoebus/EVANS/epics/baseSnoop
 
 # Sun compatibility
 #USR_CXXFLAGS_solaris+=-compat=4
@@ -28,28 +29,29 @@ USR_INCLUDES += -I$(EPICS_BASE)/src/cas/io/bsdSocket
 # Use CAS diagnostics statistics
 USR_CXXFLAGS += -DCAS_DIAGNOSTICS
 
-PROD_LIBS := cas ca gdd Com
-#
-# Added ws2_32 winmm user32 for the non-dll build
-#
+caSnooper_LIBS := cas ca gdd Com
+caSnooperB_LIBS := ca Com
+
 SYS_PROD_LIBS_WIN32 := ws2_32 advapi32 user32
 
-SRCS += caSnooper.cc
-SRCS += snoopServer.cc
-SRCS += snoopStat.cc
 SRCS += ut.cc
 
-PROD := caSnooper
+caSnooper_SRCS += caSnooper.cc
+caSnooper_SRCS += snoopServer.cc
+caSnooper_SRCS += snoopStat.cc
+#caSnooper_SRCS += ut.cc
+
+caSnooperB_SRCS += caSnooperB.cc
+caSnooperB_SRCS += snoopClient.cc
+#caSnooperB_SRCS += ut.cc
+
+PROD := caSnooper caSnooperB
 
 include $(TOP)/config/RULES.Host
 
 caSnooper$(OBJ) snoopServer$(OBJ) : ../snoopServer.h
+caSnooperB$(OBJ) snoopClient$(OBJ) : ../snoopClient.h
 snoopStat$(OBJ) : ../snoopStat.h
-
-clean::
-	@$(RM) caSnooper
-	@$(RM) -rf Templates.DB
-	@$(RM) core 
 
 # **************************** Emacs Editing Sequences *****************
 # Local Variables:

@@ -15,6 +15,7 @@
 #include "gddApps.h"
 #include "snoopServer.h"
 #include "snoopStat.h"
+#include "ut.h"
 
 snoopStat::snoopStat(snoopServer* s,const char* n,int t) :
     casPV(*s),type(t),serv(s),post_data(0),name(strDup(n))
