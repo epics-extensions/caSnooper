@@ -1,0 +1,57 @@
+# Makefile.Host for Performance Test Example Server
+
+CAS = ../../..
+TOP = $(CAS)/../..
+
+include $(TOP)/config/CONFIG_EXTENSIONS
+
+#EPICS_BASE = /home/phoebus/EVANS/epics/baseGatewayOpt
+#EPICS_BASE = /home/phoebus/EVANS/epics/baseGateway
+#EPICS_BASE = /home/phoebus/EVANS/epics/baseLatest
+
+# Sun compatibility
+#USR_CXXFLAGS_solaris+=-compat=4
+# Needed for Motif functions using string literals for char * arguments
+# Weaker than -compat=4
+USR_CXXFLAGS_solaris += -features=no%conststrings
+
+CXXCMPLR = STRICT
+
+HOST_OPT=NO
+
+# The following is necessary to include server.h to get to casCtx
+USR_CXXFLAGS += -DcaNetAddrSock
+USR_INCLUDES += -I$(EPICS_BASE)/src/cas/generic
+USR_INCLUDES += -I$(EPICS_BASE)/src/cas/generic/st
+USR_INCLUDES += -I$(EPICS_BASE)/src/cas/io/bsdSocket
+
+# USR_CXXFLAGS += -DDEBUG_MODE
+
+# Use CAS diagnostics statistics
+USR_CXXFLAGS += -DCAS_DIAGNOSTICS
+
+PROD_LIBS := cas ca gdd Com
+#
+# Added ws2_32 winmm user32 for the non-dll build
+#
+SYS_PROD_LIBS_WIN32 := ws2_32 advapi32 user32
+
+SRCS += caSnooper.cc
+SRCS += snoopServer.cc
+SRCS += ut.cc
+
+PROD := caSnooper
+
+include $(TOP)/config/RULES.Host
+
+caSnooper$(OBJ) snoopServer$(OBJ) : ../snoopServer.h
+
+clean::
+	@$(RM) caSnooper
+	@$(RM) -rf Templates.DB
+	@$(RM) core 
+
+# **************************** Emacs Editing Sequences *****************
+# Local Variables:
+# mode: makefile
+# End:
