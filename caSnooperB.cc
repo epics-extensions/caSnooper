@@ -6,8 +6,6 @@
 #define NPRINT_DEFAULT -1
 #define NLIMIT_DEFAULT -1.0
 
-#define VERSION "CaSnooperB 1.0"
-
 #define ALLOCATE_STORAGE
 
 #include <string.h>
@@ -114,7 +112,7 @@ extern int main(int argc, char **argv)
     }
 
   // Print timing
-    double elapsedTime=processedTime+start-begin;
+    double elapsedTime=processedTime+(double)(start-begin);
     print("\nCaSnooperB terminating after %.2f seconds [%.2f minutes]\n",
       elapsedTime,elapsedTime/60.);
     

@@ -3,10 +3,14 @@
 TOP = ../../..
 include $(TOP)/config/CONFIG_EXTENSIONS
 
-#EPICS_BASE = /home/phoebus/EVANS/epics/baseGatewayOpt
-#EPICS_BASE = /home/phoebus/EVANS/epics/baseGateway
-#EPICS_BASE = /home/phoebus/EVANS/epics/baseLatest
-EPICS_BASE = /home/phoebus/EVANS/epics/baseSnoop
+# Define to make caSnooperB with a modified version of base and not
+# build caSnooper
+CA_SNOOPERB=NO
+
+# Use special, modified base (Will also be used for caSnooper)
+ifeq (($CA_SNOOPERB),YES)
+  EPICS_BASE = /home/phoebus/EVANS/epics/baseSnoop
+endif
 
 # Sun compatibility
 #USR_CXXFLAGS_solaris+=-compat=4
@@ -30,8 +34,6 @@ USR_INCLUDES += -I$(EPICS_BASE)/src/cas/io/bsdSocket
 USR_CXXFLAGS += -DCAS_DIAGNOSTICS
 
 caSnooper_LIBS := cas ca gdd Com
-caSnooperB_LIBS := ca Com
-
 SYS_PROD_LIBS_WIN32 := ws2_32 advapi32 user32
 
 SRCS += ut.cc
@@ -39,13 +41,18 @@ SRCS += ut.cc
 caSnooper_SRCS += caSnooper.cc
 caSnooper_SRCS += snoopServer.cc
 caSnooper_SRCS += snoopStat.cc
-#caSnooper_SRCS += ut.cc
 
-caSnooperB_SRCS += caSnooperB.cc
-caSnooperB_SRCS += snoopClient.cc
-#caSnooperB_SRCS += ut.cc
+PROD := caSnooper
 
-PROD := caSnooper caSnooperB
+# CaSnooperB
+ifeq (($CA_SNOOPERB),YES)
+  caSnooperB_LIBS := ca Com
+
+  caSnooperB_SRCS += caSnooperB.cc
+  caSnooperB_SRCS += snoopClient.cc
+
+  PROD := caSnooperB
+endif
 
 include $(TOP)/config/RULES.Host
 

@@ -1,8 +1,12 @@
 // CaSnooper: Server that logs broadcasts
 
+#define DEBUG_TIME 0
+
+#if 0
 // The following are used for the modified base
-#define ALLOCATE_STORAGE
-#include "snoopCA.h"
+#  define ALLOCATE_STORAGE
+#  include "snoopCA.h"
+#endif
 
 #include "fdManager.h"
 #include "snoopServer.h"
@@ -10,6 +14,7 @@
 
 // Interval for rate statistics in seconds
 #define RATE_STATS_INTERVAL 1u
+#define DELAY .01     // 10 ms
 
 // Function prototypes
 extern int main(int argc, const char **argv);
@@ -21,19 +26,20 @@ static void usage();
 //
 extern int main(int argc, const char **argv)
 {
-    osiTime delay(0u,10000000u);     // (sec, nsec) (10 ms)
+    snoopRateStatsTimer *statTimer = NULL;
+    double delay=DELAY;
     int doStats = 0;
     snoopServer *pCAS;
     unsigned debugLevel = 0u;
-    float executionTime;
-    float waitTime = 0.0;
+    double executionTime;
+    double waitTime = 0.0;
     int forever = 1;
     char *prefix = NULL;
     char *individualName = NULL;
     int nCheck = NCHECK_DEFAULT;
     int nPrint = NPRINT_DEFAULT;
     int nSigma = NSIGMA_DEFAULT;
-    float nLimit = NLIMIT_DEFAULT;
+    double nLimit = NLIMIT_DEFAULT;
     int i;
     
     for (i=1; i<argc; i++) {
@@ -55,7 +61,7 @@ extern int main(int argc, const char **argv)
 	    }
 	    continue;
 	}
-	if(sscanf(argv[i],"-l %f", &nLimit)==1) {
+	if(sscanf(argv[i],"-l %lf", &nLimit)==1) {
 	    continue;
 	}
 	if(sscanf(argv[i],"-p %d", &nPrint)==1) {
@@ -73,11 +79,11 @@ extern int main(int argc, const char **argv)
 	if(sscanf(argv[i],"-s %d", &nSigma)==1) {
 	    continue;
 	}
-	if(sscanf(argv[i],"-t %f", &executionTime)==1) {
+	if(sscanf(argv[i],"-t %lf", &executionTime)==1) {
 	    forever = aitFalse;
 	    continue;
 	}
-	if(sscanf(argv[i],"-w %f", &waitTime)==1) {
+	if(sscanf(argv[i],"-w %lf", &waitTime)==1) {
 	    continue;
 	}
 	print("Unknown option: \"%s\"\n", argv[i]);
@@ -85,34 +91,67 @@ extern int main(int argc, const char **argv)
 	return(1);
     }
     
+  // Start
+    print("Starting %s at %s\n",VERSION,timeStamp());
+    print("%s\n",BASE_VERSION_STRING);
+    if(doStats) print("PV name prefix is %s\n",prefix);
+
+  // Create the server
     pCAS = new snoopServer(prefix,individualName,nCheck,nPrint,nSigma,nLimit);
     if(!pCAS) {
+	print("Could not create server\n");
 	return(-1);
     }
     pCAS->setDebugLevel(debugLevel);
     pCAS->disable();
     
   // Main loop
-    print("Starting %s at %s\n",VERSION,timeStamp());
-    if(doStats) print("PV name prefix is %s\n",pCAS->getPrefix());
-
     osiTime begin(osiTime::getCurrent());
     
   // Loop here until the specified wait time
-    osiTime delay0(osiTime::getCurrent() - begin);
-    osiTime wait(waitTime);
+    double delay0=(double)(osiTime::getCurrent() - begin);
+    double wait=waitTime;
+#if DEBUG_TIME
+    print("delay0=%g wait=%g\n",delay0,wait);
+#endif
     while(delay0 < wait) {
+#if BASE_REVISION > 13
 	fileDescriptorManager.process(delay0);
-	delay0 = osiTime::getCurrent() - begin;
+#else
+	osiTime osiDelay(delay0);
+	fileDescriptorManager.process(osiDelay);
+#endif
+	delay0=(double)(osiTime::getCurrent() - begin);
+#if DEBUG_TIME
+	print("delay0=%g wait=%g\n",delay0,wait);
+#endif
     }
 
   // Initialize stat counters
     if(doStats) {
+#if BASE_REVISION > 13
+      // Start a default timer queue
+	epicsTimerQueueActive &queue = 
+	  epicsTimerQueueActive::allocate(true);
+	statTimer = new snoopRateStatsTimer(queue,RATE_STATS_INTERVAL,pCAS);
+	if(statTimer) {
+	  // Call the expire routine to initialize it
+	    statTimer->expire(epicsTime::getCurrent());
+	  // Then start the timer
+	    statTimer->start();
+	} else {
+	    print("Could not start statistics timer\n");
+	}
+#else
 	osiTime rateStatsDelay(RATE_STATS_INTERVAL,0u);
-	snoopRateStatsTimer *statTimer =
-	  new snoopRateStatsTimer(rateStatsDelay, pCAS);
+	statTimer = new snoopRateStatsTimer(rateStatsDelay,pCAS);
       // Call the expire routine to initialize it
-	statTimer->expire();
+	if(statTimer) {
+	    statTimer->expire();
+	} else {
+	    print("Could not start statistics timer\n");
+	}
+#endif
     }
     
   // Start the processing
@@ -120,7 +159,12 @@ extern int main(int argc, const char **argv)
     pCAS->enable();
     osiTime start(osiTime::getCurrent());
     while (aitTrue) {
+#if BASE_REVISION > 13
 	fileDescriptorManager.process(delay);
+#else
+	osiTime osiDelay(delay);
+	fileDescriptorManager.process(osiDelay);
+#endif
 	processedTime=(double)(osiTime::getCurrent() - start);
 	pCAS->setProcessTime(processedTime);
 	if(forever) {
@@ -133,7 +177,7 @@ extern int main(int argc, const char **argv)
     }
 
   // Print timing
-    double elapsedTime=processedTime+start-begin;
+    double elapsedTime=processedTime+(double)(start-begin);
     print("\nCaSnooper terminating after %.2f seconds [%.2f minutes]\n",
       elapsedTime,elapsedTime/60.);
     print("  Data collected for %.2f seconds [%.2f minutes]\n",
@@ -153,20 +197,21 @@ extern int main(int argc, const char **argv)
 void usage()
 {
     print(
-      "%s\n"
+      "%s %s\n"
       "Usage: caSnooper [options]\n"
       "  Options:\n"
       "    -c<integer>  Check validity of top n requests (0 means all)\n"
       "    -d<integer>  Set debug level to n\n"
       "    -h           Help (This message)\n"
+      "    -i<string>   Specify a PV name to watch individually\n"
       "    -l<decimal>  Print all requests over n Hz\n"
       "    -p<integer>  Print top n requests (0 means all)\n"
-      "    -n[<string>] Use string as prefix for internal PV names\n"
-      "                    (%d chars max) Default is: %s\n"
+      "    -n[<string>] Make internal PV names available\n"
+      "                   Use string as prefix for internal PV names\n"
+      "                   (%d chars max length) Default string is: %s\n"
       "    -s<integer>  Print all requests over n sigma\n"
       "    -t<decimal>  Run n seconds, then print report\n"
       "    -w<decimal>  Wait n sec before collecting data\n"
       "\n", 
-      VERSION,PREFIX_SIZE-1,DEFAULT_PREFIX);
-	
+      VERSION,BASE_VERSION_STRING,PREFIX_SIZE-1,DEFAULT_PREFIX);
 }

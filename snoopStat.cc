@@ -25,9 +25,10 @@ snoopStat::snoopStat(snoopServer* s,const char* n,int t) :
   // Define the value gdd;
     int appValue=tt.getApplicationType("value");
     value=new gdd(appValue,aitEnumFloat64);
-    if(value)
-      value->put((aitFloat64)serv->getStatTable(type)->initValue);
-    value->setTimeStamp(timeSpec());
+    if(value) {
+	value->put((aitFloat64)serv->getStatTable(type)->initValue);
+	value->setTimeStamp(timeSpec());
+    }
 #if DEBUG_UMR
     fflush(stderr);
     print("snoopStat::snoopStat: name=%s\n",name);
@@ -84,7 +85,7 @@ aitEnum snoopStat::bestExternalType(void) const
     return aitEnumFloat64;
 }
 
-caStatus snoopStat::write(const casCtx & /* ctx */, gdd &dd)
+caStatus snoopStat::write(const casCtx & /* ctx */, WRITE_CONST gdd &dd)
 {
     gddApplicationTypeTable& table=gddApplicationTypeTable::AppTable();
     
@@ -94,7 +95,16 @@ caStatus snoopStat::write(const casCtx & /* ctx */, gdd &dd)
 	value->getConvert(val);
 	serv->setStat(type,val);
 	serv->processStat(type,val);
+    } else {
+	return S_casApp_noMemory;
     }
+#if DEBUG_UMR
+    fflush(stderr);
+    print("snoopStat::write: name=%s\n",name);
+    fflush(stdout);
+    dd.dump();
+    fflush(stderr);
+#endif
     return S_casApp_success;
 #if 0
     return S_casApp_noSupport;
@@ -108,9 +118,10 @@ caStatus snoopStat::read(const casCtx & /*ctx*/, gdd &dd)
     
   // Branch on application type
     unsigned at=dd.applicationType();
-    switch(at) {
 #if 0
-      // KE: These are not implemented in the released version of base
+  // KE: Other alternatives are not implemented in the released
+  // version of base
+    switch(at) {
     case gddAppType_ackt:
     case gddAppType_acks:
     case gddAppType_dbr_stsack_string:
@@ -125,13 +136,26 @@ caStatus snoopStat::read(const casCtx & /*ctx*/, gdd &dd)
 	dd.put(str);
 	return S_casApp_success;
 	break;
-#endif
     default:
       // Copy the current state
 	if(attr) table.smartCopy(&dd,attr);
-	if(value) table.smartCopy(&dd,value);
+	if(value) {
+	    table.smartCopy(&dd,value);
+	} else {
+	    return S_casApp_noMemory;
+	}
 	return S_casApp_success;
     }
+#else
+  // Copy the current state
+    if(attr) table.smartCopy(&dd,attr);
+    if(value) {
+	table.smartCopy(&dd,value);
+    } else {
+	return S_casApp_noMemory;
+    }
+    return S_casApp_success;
+#endif
 #if DEBUG_UMR
     fflush(stderr);
     print("snoopStat::read: name=%s\n",name);
@@ -143,9 +167,11 @@ caStatus snoopStat::read(const casCtx & /*ctx*/, gdd &dd)
 
 void snoopStat::postData(long val)
 {
-    value->put((aitFloat64)val);
-    value->setTimeStamp(timeSpec());
-    if(post_data) postEvent(serv->getSelectMask(),*value);
+    if(value) {
+	value->put((aitFloat64)val);
+	value->setTimeStamp(timeSpec());
+	if(post_data) postEvent(serv->getSelectMask(),*value);
+    }
 #if DEBUG_UMR
     fflush(stderr);
     print("snoopStat::postData(long): name=%s val=%ld\n",name,val);
@@ -159,9 +185,11 @@ void snoopStat::postData(long val)
 
 void snoopStat::postData(unsigned long val)
 {
-    value->put((aitFloat64)val);
-    value->setTimeStamp(timeSpec());
-    if(post_data) postEvent(serv->getSelectMask(),*value);
+    if(value) {
+	value->put((aitFloat64)val);
+	value->setTimeStamp(timeSpec());
+	if(post_data) postEvent(serv->getSelectMask(),*value);
+    }
 #if DEBUG_UMR
     fflush(stderr);
     print("snoopStat::postData(unsigned long): name=%s val=%lu\n",name,val);
@@ -173,9 +201,11 @@ void snoopStat::postData(unsigned long val)
 
 void snoopStat::postData(double val)
 {
-    value->put(val);
-    value->setTimeStamp(timeSpec());
-    if(post_data) postEvent(serv->getSelectMask(),*value);
+    if(value) {
+	value->put(val);
+	value->setTimeStamp(timeSpec());
+	if(post_data) postEvent(serv->getSelectMask(),*value);
+    }
 #if DEBUG_UMR
     fflush(stderr);
     print("snoopStat::postData(double): name=%s val=%g\n",name,val);

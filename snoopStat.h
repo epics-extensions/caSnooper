@@ -7,6 +7,14 @@
 
 #include "aitTypes.h"
 
+#include "epicsVersion.h"
+
+#if BASE_REVISION > 13
+#define WRITE_CONST const
+#else
+#define WRITE_CONST
+#endif
+
 class gdd;
 class snoopServer;
 
@@ -21,7 +29,7 @@ class snoopStat : public casPV
     virtual void interestDelete(void);
     virtual aitEnum bestExternalType(void) const;
     virtual caStatus read(const casCtx &ctx, gdd &prototype);
-    virtual caStatus write(const casCtx &ctx, gdd &value);
+    virtual caStatus write(const casCtx &ctx, WRITE_CONST gdd &value);
     virtual unsigned maxSimultAsyncOps(void) const;
     virtual const char *getName() const;
     

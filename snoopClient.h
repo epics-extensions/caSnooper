@@ -6,6 +6,8 @@
 #define SS_OK 0
 #define SS_ERROR -1
 
+#define VERSION "CaSnooperB 1.0"
+
 #include "resourceLib.h"
 #include "caProto.h"
 

@@ -15,13 +15,8 @@ int errMsg(const char *fmt, ...)
     va_end(vargs);
     
     if(lstring[0] != '\0') {
-#ifdef WIN32
-	lprintf("%s\n",lstring);
-	fflush(stdout);
-#else
 	fprintf(stderr,"%s\n",lstring);
 	fflush(stderr);
-#endif
     }
     
     return 0;
@@ -100,11 +95,7 @@ void print(const char *fmt, ...)
     va_end(vargs);
     
     if(lstring[0] != '\0') {
-#ifdef WIN32
-	lprintf("%s",lstring);
-#else
 	printf("%s",lstring);
-#endif
     }
     fflush(stdout);
 }
@@ -117,8 +108,12 @@ struct timespec *timeSpec(void)
     static struct timespec ts;
     osiTime osit(osiTime::getCurrent());
   // EPICS is 20 years ahead of its time
+#if BASE_REVISION > 13
+    ts=osit;
+#else
     ts.tv_sec=(time_t)osit.getSecTruncToLong()-631152000ul;
     ts.tv_nsec=osit.getNSecTruncToLong();
+#endif
     
     return &ts;
 }

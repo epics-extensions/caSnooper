@@ -11,11 +11,13 @@
 #define DEBUG_TIMER 0
 #define DEBUG_PROCESS_STAT 0
 #define DEBUG_STAT 0
+#define DEBUG_PUT 0
 
 #define ULONG_DIFF(n1,n2) (((n1) >= (n2))?((n1)-(n2)):((n1)+(ULONG_MAX-(n2))))
 
 // server.h is private and not in base/include.  We are including it
-// so we can access casCtx, which is not normally possible (by intent).
+// so we can access casCtx, which is not normally possible (by
+// intent).  Note: The src files have to be available to do this.
 #  define HOST_NAMESIZE 256
 #  include "server.h"
 inline casCoreClient * casCtx::getClient() const 
@@ -45,6 +47,7 @@ snoopServer::snoopServer(char *prefixIn, char *individualNameIn,
     statPrefix(0),
     statPrefixLength(0),
     individualName(individualNameIn),
+    individualCount(0),
     enabled(0),
     reportFlag(0),
     resetFlag(0),
@@ -57,7 +60,11 @@ snoopServer::snoopServer(char *prefixIn, char *individualNameIn,
     dataArray((snoopData *)0)
 {
   // Initialize the PV list
+#if BASE_REVISION > 13
+  // No longer required
+#else
     pvList.init(2048u);
+#endif
 
   // Set the individual name
     if(individualNameIn && *individualNameIn) individualName=individualNameIn;
@@ -68,20 +75,28 @@ snoopServer::snoopServer(char *prefixIn, char *individualNameIn,
     requestCount=0u;
 
   // Set the select mask to everything supported
+#if BASE_REVISION > 13
+    selectMask=(alarmEventMask()|valueEventMask()|logEventMask());
+#else
     selectMask=(alarmEventMask|valueEventMask|logEventMask);
+#endif
 }
 
 // snoopServer::~snoopServer ///////////////////////////////////////////
 snoopServer::~snoopServer(void)
 {
   // Clear the pvList
+#if BASE_REVISION > 13
+    pvList.traverse(dataNode::destroy);
+#else
     pvList.destroyAllEntries();
+#endif
 }
 
 // snoopServer::clearStat //////////////////////////////////////////////
 void snoopServer::clearStat(int type)
 {
-	statTable[type].pv=NULL;
+    statTable[type].pv=NULL;
 }
 
 // snoopServer::pvExistTest ////////////////////////////////////////////
@@ -151,9 +166,12 @@ pvCreateReturn snoopServer::createPV(const casCtx &ctx, const char *pvName)
     if(doStats) {
 	for(int i=0; i < statCount; i++) {
 	    if(strcmp(pvName,statTable[i].pvName)==0) {
-		if(statTable[i].pv==NULL)
-		  statTable[i].pv=new snoopStat(this,pvName,i);
-		
+		if(statTable[i].pv==NULL) {
+		    statTable[i].pv=new snoopStat(this,pvName,i);
+		}
+#if DEBUG_PUT
+		print("createPV: %d %x %s\n",i,statTable[i],pvName);
+#endif		
 		return pvCreateReturn(*statTable[i].pv);
 	    }
 	}
@@ -210,14 +228,17 @@ void snoopServer::report(void)
     double sum=0.0;
     double sumsq=0.0;
     double sigma, nSigmaVal, avg;
-    unsigned long i,j;
+    unsigned long il,jl;
+    int i;
     int status;
     char name[NAMESIZE];
     char *ptr;
 
   // Reset the report flag
-    reportFlag=0;
-    setStat(statReport,(unsigned long)resetFlag);
+    if(doStats) {
+	reportFlag=0;
+	setStat(statReport,(unsigned long)resetFlag);
+    }
 
   // Check time
     if(processTime <= 0.0) {
@@ -238,8 +259,8 @@ void snoopServer::report(void)
 
   // Loop over the nodes to get data for statistics
     nRequests=nRequestsTotal=0;
-    for(i=0; i < nNodes; i++) {
-	nRequests=dataArray[i].getCount();
+    for(il=0; il < nNodes; il++) {
+	nRequests=dataArray[il].getCount();
 	nRequestsTotal+=nRequests;
 	x=(double)nRequests;
 	sum+=x;
@@ -273,15 +294,15 @@ void snoopServer::report(void)
 	  nSigma,nSigmaVal);
 	max=sum=sumsq=0.0;
 	nRequestsTotal=nNodes1=0;
-	for(i=j=0; i < nNodes; i++) {
-	    nRequests=dataArray[i].getCount();
+	for(il=jl=0; il < nNodes; il++) {
+	    nRequests=dataArray[il].getCount();
 	    if((double)nRequests > nSigmaVal) {
-		strcpy(name,dataArray[i].getName());
+		strcpy(name,dataArray[il].getName());
 		ptr=strchr(name,DELIMITER);
 		if(ptr) *ptr='\0';
 		else ptr=name;
-		print("%4ld %-20s %-33s %.2f\n",++j,ptr+1,name,
-		  dataArray[i].getCount()/processTime);
+		print("%4ld %-30s %-33s %.2f\n",++jl,ptr+1,name,
+		  dataArray[il].getCount()/processTime);
 	    } else {
 		nNodes1++;
 		nRequestsTotal+=nRequests;
@@ -334,7 +355,7 @@ void snoopServer::report(void)
 	    ptr=strchr(name,DELIMITER);
 	    if(ptr) *ptr='\0';
 	    else ptr=name;
-	    print("%4ld %-20s %-33s %.2f\n",i+1,ptr+1,name,
+	    print("%4ld %-30s %-33s %.2f\n",i+1,ptr+1,name,
 	      dataArray[ii].getCount()/processTime);
 	}
     }
@@ -353,14 +374,14 @@ void snoopServer::report(void)
 	    }
 	}
 	print("\nPVs over %.2f Hz\n",nLimit);
-	for(i=0; i < nNodes; i++) {
-	    ii=index[i];
+	for(il=0; il < nNodes; il++) {
+	    ii=index[il];
 	    if(dataArray[ii].getCount()/processTime < nLimit) break;
 	    strcpy(name,dataArray[ii].getName());
 	    ptr=strchr(name,DELIMITER);
 	    if(ptr) *ptr='\0';
 	    else ptr=name;
-	    print("%4ld %-20s %-33s %.2f\n",i+1,ptr+1,name,
+	    print("%4ld %-30s %-33s %.2f\n",il+1,ptr+1,name,
 	      dataArray[ii].getCount()/processTime);
 	}
     }
@@ -432,7 +453,7 @@ void snoopServer::report(void)
 	    ptr=strchr(name,DELIMITER);
 	    if(ptr) *ptr='\0';
 	    else ptr=name;
-	    print("%4ld %-20s %-33s %-2s %.2f\n",i+1,ptr+1,name,
+	    print("%4ld %-30s %-33s %-2s %.2f\n",i+1,ptr+1,name,
 	      connTable[ca_state(pChid[i])],
 	      dataArray[ii].getCount()/processTime);
 	}
@@ -456,7 +477,11 @@ void snoopServer::report(void)
 void snoopServer::reset(void)
 {
   // Clear the pvList
+#if BASE_REVISION > 13
+    pvList.traverse(dataNode::destroy);
+#else
     pvList.destroyAllEntries();
+#endif
     print("\n%s Reset\n",timeStamp());
 
   // Reset the reset flag
@@ -474,6 +499,9 @@ void snoopServer::initStats(char *prefix)
     
   // Define the prefix for the server stats
     if(!prefix) {
+	for(i=0; i < statCount; i++) {
+	    statTable[i].pv=NULL;
+	}
 	doStats=0;
 	return;
     }
@@ -486,9 +514,10 @@ void snoopServer::initStats(char *prefix)
     }
     statPrefixLength=strlen(statPrefix);
     doStats=1;
+
     
   // Set up PV names for server stats and fill them into the statTable
-    for(i=0;i<statCount;i++) {
+    for(i=0; i < statCount; i++) {
 	switch(i) {
 	case statRequestRate:
 	    requestCount=0u;
@@ -571,13 +600,13 @@ void snoopServer::processStat(int type, double val)
 	if(val > 0.0) quitFlag=1;
 	break;
     case statCheck:
-	nCheck=floor(val+.5);
+	nCheck=(int)floor(val+.5);
 	break;
     case statPrint:
-	nPrint=floor(val+.5);
+	nPrint=(int)floor(val+.5);
 	break;
     case statSigma:
-	nSigma=floor(val+.5);
+	nSigma=(int)floor(val+.5);
 	break;
     case statLimit:
 	nLimit=val;
@@ -594,7 +623,7 @@ void snoopServer::processStat(int type, double val)
 // snoopServer::setStat ////////////////////////////////////////////////
 void snoopServer::setStat(int type, double val)
 {
-    if(statTable[type].pv) statTable[type].pv->postData(val);
+    if(doStats && statTable[type].pv) statTable[type].pv->postData(val);
 #if DEBUG_STAT
     print("snoopServer::setStat: type=%d val=%.2f\n",
       type,val);
@@ -603,7 +632,7 @@ void snoopServer::setStat(int type, double val)
 
 void snoopServer::setStat(int type, unsigned long val)
 {
-    if(statTable[type].pv) statTable[type].pv->postData(val);
+    if(doStats && statTable[type].pv) statTable[type].pv->postData(val);
 }
 
 // snoopServer::show ///////////////////////////////////////////////////
@@ -638,12 +667,12 @@ int snoopServer::sortArray(unsigned long **index, unsigned long nVals)
     if(!*index) {
 	errMsg("snoopServer::sortArray: Cannot allocate space for index");
 	rc=SS_ERROR;
-	goto ERROR;
+	goto ERR;
     }
     if(!vals) {
 	errMsg("snoopServer::sortArray: Cannot allocate space for values");
 	rc=SS_ERROR;
-	goto ERROR;
+	goto ERR;
     }
 
   // Fill the vals array
@@ -664,7 +693,7 @@ int snoopServer::sortArray(unsigned long **index, unsigned long nVals)
 
     goto CLEAN;
 
-  ERROR:
+  ERR:
     if(*index) {
 	delete *index;
 	*index=0;
@@ -714,6 +743,54 @@ snoopData &snoopData::operator=(const snoopData &snoopDataIn)
 ////////////////////////////////////////////////////////////////////////
 
 // snoopRateStatsTimer::expire /////////////////////////////////////////
+#if BASE_REVISION > 13
+epicsTimerNotify::expireStatus
+snoopRateStatsTimer::expire(const epicsTime &curTime)
+{
+    static int first=1;
+    static epicsTime prevTime;
+    double delTime;
+    static unsigned long rrPrevCount;
+    static unsigned long srPrevCount;
+    unsigned long rrCurCount=serv->getRequestCount();
+    unsigned long srCurCount=serv->getIndividualCount();
+    double rrRate;
+    double srRate;
+    
+  // Initialize the first time
+    if(first) {
+	prevTime=curTime;
+	rrPrevCount=rrCurCount;
+	srPrevCount=srCurCount;
+	first=0;
+    }
+    delTime=(double)(curTime-prevTime);
+    
+  // Calculate the request rate
+    rrRate=(delTime > 0)?(double)(ULONG_DIFF(rrCurCount,rrPrevCount))/
+      delTime:0.0;
+    serv->setStat(statRequestRate,rrRate);
+    srRate=(delTime > 0)?(double)(ULONG_DIFF(srCurCount,srPrevCount))/
+      delTime:0.0;
+    serv->setStat(statIndividualRate,srRate);
+    
+#if DEBUG_TIMER
+    print("snoopRateStatsTimer::expire():\n");
+    print("  rrCurCount=%ld rrPrevCount=%ld rrRate=%g\n",
+      rrCurCount,rrPrevCount,rrRate);
+    print("  srCurCount=%ld srPrevCount=%ld srRate=%g\n",
+      srCurCount,srPrevCount,srRate);
+#endif
+
+  // Reset the values for previous
+    prevTime=curTime;
+    rrPrevCount=rrCurCount;
+    srPrevCount=srCurCount;
+
+  // Set to continue
+    return epicsTimerNotify::expireStatus(restart,interval);
+}
+#else
 void snoopRateStatsTimer::expire()
 {
     static int first=1;
@@ -757,3 +834,4 @@ void snoopRateStatsTimer::expire()
     rrPrevCount=rrCurCount;
     srPrevCount=srCurCount;
 }
+#endif

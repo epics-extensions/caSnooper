@@ -18,7 +18,7 @@
 // Interval for rate statistics in seconds
 #define RATE_STATS_INTERVAL 1u
 
-#define VERSION "CaSnooper 1.2 Beta1"
+#define VERSION "CaSnooper 2.0"
 
 #define SS_OK 0
 #define SS_ERROR -1
@@ -35,9 +35,16 @@
 #include "epicsAssert.h"
 #include "casdef.h"
 #include "gddAppFuncTable.h"
-#include "osiTimer.h"
 #include "resourceLib.h"
 #include "snoopStat.h"
+#include "epicsVersion.h"
+
+#if BASE_REVISION > 13
+#include "epicsTimer.h"
+#define osiTime epicsTime
+#else
+#include "osiTimer.h"
+#endif
 
 // Statistics PVs
 #define statRequestRate    0
@@ -57,17 +64,36 @@ class snoopData;
 class dataNode;
 class snoopServer;
 
-struct snoopServerStats
+typedef struct _snoopServerStats
 {
-    char* name;
-    char* pvName;
-    snoopStat* pv;
+    char *name;
+    char *pvName;
+    snoopStat *pv;
     double initValue;
     char *units;
     short precision;
-};
-typedef struct snoopServerStats;
+} snoopServerStats;
 
+#if BASE_REVISION > 13
+class snoopRateStatsTimer : public epicsTimerNotify
+{
+  public:
+    snoopRateStatsTimer(epicsTimerQueue &queue,
+      double intervalIn, snoopServer *m) : 
+      interval(intervalIn), startTime(epicsTime::getCurrent()),
+      serv(m), timer(queue.createTimer()) {}
+    virtual expireStatus expire(const epicsTime &curTime);
+    void start() { timer.start(*this,interval); }
+    void stop() { timer.cancel(); }
+  protected:
+    virtual ~snoopRateStatsTimer() { timer.destroy(); }
+  private:
+    double interval;
+    epicsTime startTime;
+    snoopServer *serv;
+    epicsTimer &timer;
+};
+#else
 class snoopRateStatsTimer : public osiTimer
 {
   public:
@@ -83,6 +109,7 @@ class snoopRateStatsTimer : public osiTimer
     osiTime startTime;
     snoopServer *serv;
 };
+#endif
 
 class snoopData
 {
