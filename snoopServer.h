@@ -1,23 +1,33 @@
 // CaSnooper: Server that logs broadcasts
 
-#ifndef NELEMENTS
-#  define NELEMENTS(A) (sizeof(A)/sizeof(A[0]))
-#endif
-
 #define NAMESIZE 80
-#define UNREFERENCED(x) (x)
-
-#define SS_OK 0
-#define SS_ERROR -1
 
 #define DELIMITER '\t'
-#define CA_PEND_IO_TIME 30.
+#define CA_PEND_IO_TIME 10.
 
 #define DEFAULT_PREFIX "CaSnoop"
 #define PREFIX_SIZE 11
 
-#define statRequestRate  0
-#define statCount 1     // Number of statistics PVs
+#define INDIVIDUAL_NAME "CaSnoop.test"
+
+#define NCHECK_DEFAULT -1
+#define NPRINT_DEFAULT -1
+#define NSIGMA_DEFAULT -1
+#define NLIMIT_DEFAULT -1.0
+
+// Interval for rate statistics in seconds
+#define RATE_STATS_INTERVAL 1u
+
+#define VERSION "CaSnooper 1.1"
+
+#define SS_OK 0
+#define SS_ERROR -1
+
+#ifndef NELEMENTS
+#  define NELEMENTS(A) (sizeof(A)/sizeof(A[0]))
+#endif
+
+#define UNREFERENCED(x) (x)
 
 #include <string.h>
 #include <stdio.h>
@@ -29,12 +39,30 @@
 #include "resourceLib.h"
 #include "snoopStat.h"
 
+// Statistics PVs
+#define statRequestRate    0
+#define statIndividualRate 1
+#define statReport         2
+#define statReset          3
+#define statQuit           4
+#define statCheck          5
+#define statPrint          6
+#define statSigma          7
+#define statLimit          8
+// Number of statistics PVs  (Must be consistent with above)
+#define statCount          9
+
+class snoopRateStatsTimer;
+class snoopData;
+class dataNode;
+class snoopServer;
+
 struct snoopServerStats
 {
     char* name;
     char* pvName;
     snoopStat* pv;
-    unsigned long* initValue;
+    double initValue;
     char *units;
     short precision;
 };
@@ -43,13 +71,9 @@ typedef struct snoopServerStats;
 // Function prototypes
 int errMsg(const char *fmt, ...);
 void hsort(double array[], unsigned long  indx[], unsigned long n);
+void print(const char *fmt, ...);
 char *timeStamp(void);
 struct timespec *timeSpec(void);
-
-class snoopRateStatsTimer;
-class snoopData;
-class dataNode;
-class snoopServer;
 
 class snoopRateStatsTimer : public osiTimer
 {
@@ -64,7 +88,7 @@ class snoopRateStatsTimer : public osiTimer
   private:
     osiTime interval;
     osiTime startTime;
-    snoopServer* serv;
+    snoopServer *serv;
 };
 
 class snoopData
@@ -120,16 +144,20 @@ class dataNode : public stringId, public tsSLNode<dataNode>
 class snoopServer : public caServer
 {
   public:
-    snoopServer(char *prefix, int nCheckIn, int nPrintIn, int nSigmaIn,
-      double nLimitIn);
+    snoopServer(char *prefixIn, char *individualNameIn, 
+      int nCheckIn, int nPrintIn, int nSigmaIn, double nLimitIn);
     ~snoopServer(void);
     
     void enable(void) { enabled=1; }
     void disable(void) { enabled=0; }
     void report(void);
+    void reset(void);
     void show(unsigned level) const;
     void setProcessTime(double processTimeIn) { processTime = processTimeIn; }
     double getprocessTime(void) const {return processTime; };
+    int doReport(void) const { return reportFlag; };
+    int doReset(void) const { return resetFlag; };
+    int doQuit(void) const { return quitFlag; };
     pvExistReturn pvExistTest(const casCtx &ctx, const char *pPvName);
     pvCreateReturn createPV(const casCtx &ctx, const char *pPvName);
     
@@ -140,16 +168,22 @@ class snoopServer : public caServer
     snoopServerStats *getStatTable(int type) { return &statTable[type]; }
     void setStat(int type,double val);
     void setStat(int type,unsigned long val);
+    void processStat(int type,double val);
     void clearStat(int type);
     void initStats(char *prefix);
-    unsigned long getRequestCount() const { return requestCount; }
     char *getPrefix(void) const { return statPrefix; }
+
+    unsigned long getRequestCount() const { return requestCount; }
+    unsigned long getIndividualCount() const { return individualCount; }
 
   private:
     int makeArray(unsigned long *nVals);
     int sortArray(unsigned long **index, unsigned long nVals);
     
     double processTime;
+    int reportFlag;
+    int resetFlag;
+    int quitFlag;
     int enabled;
     int nCheck;
     int nPrint;
@@ -163,6 +197,11 @@ class snoopServer : public caServer
     snoopServerStats statTable[statCount];
     int doStats;
     char *statPrefix;
-    int statPrefixLength;	
+    int statPrefixLength;
+    char *individualName;
     unsigned long requestCount;
+    unsigned long individualCount;
 };
+
+
+

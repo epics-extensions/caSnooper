@@ -3,19 +3,12 @@
 #include "snoopServer.h"
 #include "fdManager.h"
 
-#define NCHECK_DEFAULT -1
-#define NPRINT_DEFAULT -1
-#define NSIGMA_DEFAULT -1
-#define NLIMIT_DEFAULT 0.0
-
 // Interval for rate statistics in seconds
 #define RATE_STATS_INTERVAL 1u
 
-#define VERSION "CaSnooper 1.1"
-
 // Function prototypes
 extern int main(int argc, const char **argv);
-void usage(const char *name);
+static void usage();
 
 //
 // main()
@@ -31,6 +24,7 @@ extern int main(int argc, const char **argv)
     float waitTime = 0.0;
     int forever = 1;
     char *prefix = NULL;
+    char *individualName = NULL;
     int nCheck = NCHECK_DEFAULT;
     int nPrint = NPRINT_DEFAULT;
     int nSigma = NSIGMA_DEFAULT;
@@ -45,8 +39,16 @@ extern int main(int argc, const char **argv)
 	    continue;
 	}
 	if(!strcmp(argv[i], "-h")) {
-	    usage(argv[0]);
+	    usage();
 	    return(0);
+	}
+	if(!strncmp(argv[i],"-i",2)) {
+	    individualName=(char *)malloc(NAMESIZE*sizeof(char));
+	    if(individualName) {
+		strncpy(individualName,&argv[i][2],NAMESIZE);
+		individualName[NAMESIZE-1]='\0';
+	    }
+	    continue;
 	}
 	if(sscanf(argv[i],"-l %f", &nLimit)==1) {
 	    continue;
@@ -66,10 +68,6 @@ extern int main(int argc, const char **argv)
 	if(sscanf(argv[i],"-s %d", &nSigma)==1) {
 	    continue;
 	}
-	if(!strcmp(argv[i], "-r")) {
-	    doStats = 1;
-	    return(0);
-	}
 	if(sscanf(argv[i],"-t %f", &executionTime)==1) {
 	    forever = aitFalse;
 	    continue;
@@ -77,12 +75,12 @@ extern int main(int argc, const char **argv)
 	if(sscanf(argv[i],"-w %f", &waitTime)==1) {
 	    continue;
 	}
-	printf("Unknown option: \"%s\"\n", argv[i]);
-	usage(argv[0]);
+	print("Unknown option: \"%s\"\n", argv[i]);
+	usage();
 	return(1);
     }
     
-    pCAS = new snoopServer(prefix,nCheck,nPrint,nSigma,nLimit);
+    pCAS = new snoopServer(prefix,individualName,nCheck,nPrint,nSigma,nLimit);
     if(!pCAS) {
 	return (-1);
     }
@@ -90,8 +88,8 @@ extern int main(int argc, const char **argv)
     pCAS->disable();
     
   // Main loop
-    printf("Starting %s at %s\n",VERSION,timeStamp());
-    if(doStats) printf("PV name prefix is %s\n",pCAS->getPrefix());
+    print("Starting %s at %s\n",VERSION,timeStamp());
+    if(doStats) print("PV name prefix is %s\n",pCAS->getPrefix());
 
     osiTime begin(osiTime::getCurrent());
     
@@ -118,45 +116,49 @@ extern int main(int argc, const char **argv)
     osiTime start(osiTime::getCurrent());
     while (aitTrue) {
 	fileDescriptorManager.process(delay);
-	if(!forever) {
-	    processedTime=(double)(osiTime::getCurrent() - start);
+	processedTime=(double)(osiTime::getCurrent() - start);
+	pCAS->setProcessTime(processedTime);
+	if(forever) {
+	} else {
 	    if(processedTime > executionTime) break;
 	}
+	if(pCAS->doReport()) pCAS->report();
+	if(pCAS->doReset()) pCAS->reset();
+	if(pCAS->doQuit()) break;
     }
 
   // Print timing
     double elapsedTime=processedTime+start-begin;
-    pCAS->setProcessTime(processedTime);
-    printf("CaSnopper terminating after %.2f seconds [%.2f minutes]\n",
+    print("\nCaSnopper terminating after %.2f seconds [%.2f minutes]\n",
       elapsedTime,elapsedTime/60.);
-    printf("  Data collected for %.2f seconds [%.2f minutes]\n",
+    print("  Data collected for %.2f seconds [%.2f minutes]\n",
       processedTime,processedTime/60.);
 #if 0
-    printf("Server Statistics:\n");
+    print("\nServer Statistics:\n");
     pCAS->show(2u);
 #endif
-    pCAS->report();
+    if(!forever) pCAS->report();
     delete pCAS;
     return(0);
 }
 
-void usage(const char *name)
+void usage()
 {
-    printf(
-      "Usage: %s [options]\n"
+    print(
+      "%s\n"
+      "Usage: caSnooper [options]\n"
       "  Options:\n"
       "    -c<integer>  Check validity of top n requests (0 means all)\n"
       "    -d<integer>  Set debug level to n\n"
       "    -h           Help (This message)\n"
       "    -l<decimal>  Print all requests over n Hz\n"
       "    -p<integer>  Print top n requests (0 means all)\n"
-      "    -n[<string>] Use string as prefix for internal PVs (%d chars max)\n"
-      "                   Default is: %s\n"
+      "    -n[<string>] Use string as prefix for internal PV names\n"
+      "                    (%d chars max) Default is: %s\n"
       "    -s<integer>  Print all requests over n sigma\n"
-      "    -r           Implement rate stat PVs\n"
       "    -t<decimal>  Run n seconds, then print report\n"
       "    -w<decimal>  Wait n sec before collecting data\n"
       "\n", 
-      name,PREFIX_SIZE-1,DEFAULT_PREFIX);
+      VERSION,PREFIX_SIZE-1,DEFAULT_PREFIX);
 	
 }

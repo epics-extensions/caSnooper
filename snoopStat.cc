@@ -25,11 +25,11 @@ snoopStat::snoopStat(snoopServer* s,const char* n,int t) :
     int appValue=tt.getApplicationType("value");
     value=new gdd(appValue,aitEnumFloat64);
     if(value)
-      value->put((aitFloat64)*serv->getStatTable(type)->initValue);
+      value->put((aitFloat64)serv->getStatTable(type)->initValue);
     value->setTimeStamp(timeSpec());
 #if DEBUG_UMR
     fflush(stderr);
-    printf("snoopStat::snoopStat: name=%s\n",name);
+    print("snoopStat::snoopStat: name=%s\n",name);
     fflush(stdout);
     value->dump();
     fflush(stderr);
@@ -83,14 +83,26 @@ aitEnum snoopStat::bestExternalType(void) const
     return aitEnumFloat64;
 }
 
-caStatus snoopStat::write(const casCtx & /*ctx*/, gdd & /*dd*/)
+caStatus snoopStat::write(const casCtx & /* ctx */, gdd &dd)
 {
+    gddApplicationTypeTable& table=gddApplicationTypeTable::AppTable();
+    
+    if(value) {
+	table.smartCopy(value,&dd);
+	double val;
+	value->getConvert(val);
+	serv->setStat(type,val);
+	serv->processStat(type,val);
+    }
+    return S_casApp_success;
+#if 0
     return S_casApp_noSupport;
+#endif
 }
 
 caStatus snoopStat::read(const casCtx & /*ctx*/, gdd &dd)
 {
-    static const aitString str = "Snoopway Statistics PV";
+    static const aitString str = "CaSnooper Statistics PV";
     gddApplicationTypeTable& table=gddApplicationTypeTable::AppTable();
     
   // Branch on application type
@@ -101,7 +113,7 @@ caStatus snoopStat::read(const casCtx & /*ctx*/, gdd &dd)
     case gddAppType_ackt:
     case gddAppType_acks:
     case gddAppType_dbr_stsack_string:
-	fprintf(stderr,"%s snoopStat::read: "
+	errMsg("%s snoopStat::read: "
 	  "Got unsupported app type %d for %s\n",
 	  timeStamp(),
 	  at,name?name:"Unknown Stat PV");
@@ -121,7 +133,7 @@ caStatus snoopStat::read(const casCtx & /*ctx*/, gdd &dd)
     }
 #if DEBUG_UMR
     fflush(stderr);
-    printf("snoopStat::read: name=%s\n",name);
+    print("snoopStat::read: name=%s\n",name);
     fflush(stdout);
     dd.dump();
     fflush(stderr);
@@ -135,7 +147,7 @@ void snoopStat::postData(long val)
     if(post_data) postEvent(serv->getSelectMask(),*value);
 #if DEBUG_UMR
     fflush(stderr);
-    printf("snoopStat::postData(long): name=%s\n",name);
+    print("snoopStat::postData(long): name=%s val=%ld\n",name,val);
     fflush(stdout);
     value->dump();
     fflush(stderr);
@@ -151,7 +163,7 @@ void snoopStat::postData(unsigned long val)
     if(post_data) postEvent(serv->getSelectMask(),*value);
 #if DEBUG_UMR
     fflush(stderr);
-    printf("snoopStat::postData(unsigned long): name=%s\n",name);
+    print("snoopStat::postData(unsigned long): name=%s val=%lu\n",name,val);
     fflush(stdout);
     value->dump();
     fflush(stderr);
@@ -165,7 +177,7 @@ void snoopStat::postData(double val)
     if(post_data) postEvent(serv->getSelectMask(),*value);
 #if DEBUG_UMR
     fflush(stderr);
-    printf("snoopStat::postData(double): name=%s\n",name);
+    print("snoopStat::postData(double): name=%s val=%g\n",name,val);
     fflush(stdout);
     value->dump();
     fflush(stderr);

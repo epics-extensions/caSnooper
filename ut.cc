@@ -17,8 +17,10 @@ int errMsg(const char *fmt, ...)
     if(lstring[0] != '\0') {
 #ifdef WIN32
 	lprintf("%s\n",lstring);
+	fflush(stdout);
 #else
 	fprintf(stderr,"%s\n",lstring);
+	fflush(stderr);
 #endif
     }
     
@@ -85,6 +87,26 @@ char *timeStamp(void)
     strftime(timeStampStr,20,"%b %d %H:%M:%S",tblock);
     
     return timeStampStr;
+}
+
+// print ///////////////////////////////////////////////////////////////
+void print(const char *fmt, ...)
+{
+    va_list vargs;
+    static char lstring[1024];  /* DANGER: Fixed buffer size */
+    
+    va_start(vargs,fmt);
+    vsprintf(lstring,fmt,vargs);
+    va_end(vargs);
+    
+    if(lstring[0] != '\0') {
+#ifdef WIN32
+	lprintf("%s",lstring);
+#else
+	printf("%s",lstring);
+#endif
+    }
+    fflush(stdout);
 }
 
 // timeSpec ////////////////////////////////////////////////////////////

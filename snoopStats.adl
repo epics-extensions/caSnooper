@@ -5,16 +5,16 @@ file {
 }
 display {
 	object {
-		x=329
-		y=173
-		width=381
+		x=517
+		y=45
+		width=445
 		height=391
 	}
 	clr=14
-	bclr=3
+	bclr=2
 	cmap=""
-	gridSpacing=10
-	gridOn=1
+	gridSpacing=5
+	gridOn=0
 	snapToGrid=1
 }
 "color map" {
@@ -89,44 +89,527 @@ display {
 }
 text {
 	object {
-		x=83
+		x=115
 		y=11
 		width=214
 		height=40
 	}
 	"basic attribute" {
-		clr=10
+		clr=12
 	}
 	textix="CaSnooper"
 	align="horiz. centered"
 }
-"text update" {
+"message button" {
 	object {
-		x=233
-		y=61
+		x=55
+		y=355
 		width=105
 		height=20
 	}
-	monitor {
-		chan="CaSnoop.requestRate"
-		clr=14
-		bclr=0
+	control {
+		chan="CaSnoop.report"
+		clr=0
+		bclr=10
 	}
-	align="horiz. centered"
-	limits {
-		precSrc="default"
-		precDefault=2
+	label="Report"
+	press_msg="1.0"
+}
+"message button" {
+	object {
+		x=170
+		y=355
+		width=105
+		height=20
 	}
+	control {
+		chan="CaSnoop.reset"
+		clr=0
+		bclr=10
+	}
+	label="Reset"
+	press_msg="1.0"
+}
+"message button" {
+	object {
+		x=285
+		y=355
+		width=105
+		height=20
+	}
+	control {
+		chan="CaSnoop.quit"
+		clr=0
+		bclr=10
+	}
+	label="Quit"
+	press_msg="1.0"
 }
 text {
 	object {
-		x=42
-		y=61
-		width=172
-		height=20
+		x=87
+		y=318
+		width=270
+		height=15
 	}
 	"basic attribute" {
-		clr=10
+		clr=14
 	}
-	textix="Request Rate:"
+	textix="(Negative=None  Zero=All)"
+	align="horiz. centered"
+}
+composite {
+	object {
+		x=68
+		y=60
+		width=309
+		height=80
+	}
+	"composite name"=""
+	children {
+		composite {
+			object {
+				x=68
+				y=60
+				width=309
+				height=20
+			}
+			"composite name"=""
+			children {
+				"text update" {
+					object {
+						x=272
+						y=60
+						width=105
+						height=20
+					}
+					monitor {
+						chan="CaSnoop.requestRate"
+						clr=14
+						bclr=0
+					}
+					align="horiz. centered"
+					limits {
+						precSrc="default"
+						precDefault=2
+					}
+				}
+				text {
+					object {
+						x=68
+						y=60
+						width=172
+						height=20
+					}
+					"basic attribute" {
+						clr=10
+					}
+					textix="Request Rate:"
+				}
+			}
+		}
+		composite {
+			object {
+				x=68
+				y=90
+				width=309
+				height=20
+			}
+			"composite name"=""
+			children {
+				"text update" {
+					object {
+						x=272
+						y=90
+						width=105
+						height=20
+					}
+					monitor {
+						chan="CaSnoop.individualRate"
+						clr=14
+						bclr=0
+					}
+					align="horiz. centered"
+					limits {
+						precSrc="default"
+						precDefault=2
+					}
+				}
+				text {
+					object {
+						x=68
+						y=90
+						width=172
+						height=20
+					}
+					"basic attribute" {
+						clr=10
+					}
+					textix="Individual Rate:"
+				}
+			}
+		}
+		composite {
+			object {
+				x=68
+				y=120
+				width=309
+				height=20
+			}
+			"composite name"=""
+			children {
+				"text update" {
+					object {
+						x=272
+						y=120
+						width=105
+						height=20
+					}
+					monitor {
+						chan="CaSnoop.test"
+						clr=14
+						bclr=0
+					}
+					align="horiz. centered"
+					limits {
+						precSrc="default"
+						precDefault=2
+					}
+				}
+				text {
+					object {
+						x=68
+						y=120
+						width=172
+						height=20
+					}
+					"basic attribute" {
+						clr=10
+					}
+					textix="CaSnoop.test:"
+				}
+			}
+		}
+	}
+}
+composite {
+	object {
+		x=36
+		y=173
+		width=397
+		height=30
+	}
+	"composite name"=""
+	children {
+		composite {
+			object {
+				x=36
+				y=173
+				width=309
+				height=30
+			}
+			"composite name"=""
+			children {
+				text {
+					object {
+						x=36
+						y=178
+						width=172
+						height=20
+					}
+					"basic attribute" {
+						clr=10
+					}
+					textix="Check Top N:"
+				}
+				"text entry" {
+					object {
+						x=240
+						y=173
+						width=105
+						height=30
+					}
+					control {
+						chan="CaSnoop.nCheck"
+						clr=14
+						bclr=0
+					}
+					limits {
+						precSrc="default"
+					}
+				}
+			}
+		}
+		"message button" {
+			object {
+				x=350
+				y=178
+				width=38
+				height=20
+			}
+			control {
+				chan="CaSnoop.nCheck"
+				clr=0
+				bclr=10
+			}
+			label="None"
+			press_msg="-1"
+		}
+		"message button" {
+			object {
+				x=395
+				y=178
+				width=38
+				height=20
+			}
+			control {
+				chan="CaSnoop.nCheck"
+				clr=0
+				bclr=10
+			}
+			label="All"
+			press_msg="0"
+		}
+	}
+}
+composite {
+	object {
+		x=36
+		y=208
+		width=397
+		height=30
+	}
+	"composite name"=""
+	children {
+		composite {
+			object {
+				x=36
+				y=208
+				width=309
+				height=30
+			}
+			"composite name"=""
+			children {
+				text {
+					object {
+						x=36
+						y=213
+						width=172
+						height=20
+					}
+					"basic attribute" {
+						clr=10
+					}
+					textix="Print Top N:"
+				}
+				"text entry" {
+					object {
+						x=240
+						y=208
+						width=105
+						height=30
+					}
+					control {
+						chan="CaSnoop.nPrint"
+						clr=14
+						bclr=0
+					}
+					limits {
+						precSrc="default"
+					}
+				}
+			}
+		}
+		"message button" {
+			object {
+				x=350
+				y=213
+				width=38
+				height=20
+			}
+			control {
+				chan="CaSnoop.nPrint"
+				clr=0
+				bclr=10
+			}
+			label="None"
+			press_msg="-1"
+		}
+		"message button" {
+			object {
+				x=395
+				y=213
+				width=38
+				height=20
+			}
+			control {
+				chan="CaSnoop.nPrint"
+				clr=0
+				bclr=10
+			}
+			label="All"
+			press_msg="0"
+		}
+	}
+}
+composite {
+	object {
+		x=36
+		y=243
+		width=397
+		height=30
+	}
+	"composite name"=""
+	children {
+		composite {
+			object {
+				x=36
+				y=243
+				width=309
+				height=30
+			}
+			"composite name"=""
+			children {
+				text {
+					object {
+						x=36
+						y=248
+						width=172
+						height=20
+					}
+					"basic attribute" {
+						clr=10
+					}
+					textix="Print Over N-Sigma:"
+				}
+				"text entry" {
+					object {
+						x=240
+						y=243
+						width=105
+						height=30
+					}
+					control {
+						chan="CaSnoop.nSigma"
+						clr=14
+						bclr=0
+					}
+					limits {
+						precSrc="default"
+					}
+				}
+			}
+		}
+		"message button" {
+			object {
+				x=350
+				y=248
+				width=38
+				height=20
+			}
+			control {
+				chan="CaSnoop.nSigma"
+				clr=0
+				bclr=10
+			}
+			label="None"
+			press_msg="-1"
+		}
+		"message button" {
+			object {
+				x=395
+				y=248
+				width=38
+				height=20
+			}
+			control {
+				chan="CaSnoop.nSigma"
+				clr=0
+				bclr=10
+			}
+			label="All"
+			press_msg="0"
+		}
+	}
+}
+composite {
+	object {
+		x=36
+		y=278
+		width=397
+		height=30
+	}
+	"composite name"=""
+	children {
+		composite {
+			object {
+				x=36
+				y=278
+				width=309
+				height=30
+			}
+			"composite name"=""
+			children {
+				text {
+					object {
+						x=36
+						y=283
+						width=172
+						height=20
+					}
+					"basic attribute" {
+						clr=10
+					}
+					textix="Print Over Hz:"
+				}
+				"text entry" {
+					object {
+						x=240
+						y=278
+						width=105
+						height=30
+					}
+					control {
+						chan="CaSnoop.nLimit"
+						clr=14
+						bclr=0
+					}
+					limits {
+						precSrc="default"
+						precDefault=2
+					}
+				}
+			}
+		}
+		"message button" {
+			object {
+				x=350
+				y=283
+				width=38
+				height=20
+			}
+			control {
+				chan="CaSnoop.nLimit"
+				clr=0
+				bclr=10
+			}
+			label="None"
+			press_msg="-1"
+		}
+		"message button" {
+			object {
+				x=395
+				y=283
+				width=38
+				height=20
+			}
+			control {
+				chan="CaSnoop.nLimit"
+				clr=0
+				bclr=10
+			}
+			label="All"
+			press_msg="0"
+		}
+	}
 }
