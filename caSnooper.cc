@@ -39,7 +39,7 @@ extern int main(int argc, const char **argv)
     double delay=DELAY;
     int doStats = 0;
     snoopServer *pCAS;
-    unsigned debugLevel = 0u;
+    int debugLevel = 0u;
     double executionTime;
     double waitTime = 0.0;
     int forever = 1;

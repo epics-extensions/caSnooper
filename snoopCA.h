@@ -9,9 +9,9 @@
 /* snoopClient.h: Modifications to CA */
 
 #ifdef __cplusplus
-#define UNREFERENCED(x) (x)
+#define NU(x)
 #else
-#define UNREFERENCED(x)
+#define NU(x)=x
 #endif
 
 #ifdef ALLOCATE_STORAGE

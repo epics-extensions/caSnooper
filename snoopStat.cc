@@ -26,7 +26,8 @@
 #include "ut.h"
 
 snoopStat::snoopStat(snoopServer* s,const char* n,int t) :
-    casPV(*s),type(t),serv(s),post_data(0),name(strDup(n))
+    casPV(*s),post_data(0),type(t),serv(s),name(strDup(n))
+    
 {
     gddApplicationTypeTable& tt = gddApplicationTypeTable::AppTable();
     
@@ -125,8 +126,8 @@ caStatus snoopStat::read(const casCtx & /*ctx*/, gdd &dd)
     gddApplicationTypeTable& table=gddApplicationTypeTable::AppTable();
     
   // Branch on application type
-    unsigned at=dd.applicationType();
 #if 0
+    unsigned at=dd.applicationType();
   // KE: Other alternatives are not implemented in the released
   // version of base
     switch(at) {

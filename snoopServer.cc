@@ -51,21 +51,21 @@ char connTable[][10]={
 // snoopServer::snoopServer() //////////////////////////////////////////
 snoopServer::snoopServer(char *prefixIn, char *individualNameIn, 
   int nCheckIn, int nPrintIn, int nSigmaIn, double nLimitIn) :
-    doStats(0),
-    statPrefix(0),
-    statPrefixLength(0),
-    individualName(individualNameIn),
-    individualCount(0),
-    enabled(0),
+    processTime(0.0),
     reportFlag(0),
     resetFlag(0),
     quitFlag(0),
-    processTime(0.0),
+    enabled(0),
     nCheck(nCheckIn),
     nPrint(nPrintIn),
     nSigma(nSigmaIn),
     nLimit(nLimitIn),
-    dataArray((snoopData *)0)
+    dataArray((snoopData *)0),
+    doStats(0),
+    statPrefix(0),
+    statPrefixLength(0),
+    individualName(individualNameIn),
+    individualCount(0)
 {
   // Initialize the PV list
 #if EPICS_REVISION > 13
@@ -166,10 +166,8 @@ pvExistReturn snoopServer::pvExistTest(const casCtx& ctxIn, const char *pvName)
 }
 
 // snoopServer::createPV ///////////////////////////////////////////////
-pvCreateReturn snoopServer::createPV(const casCtx &ctx, const char *pvName)
+pvCreateReturn snoopServer::createPV(const casCtx &NU(ctx), const char *pvName)
 {
-    UNREFERENCED(ctx);
-    
   // Create stat PVs
     if(doStats) {
 	for(int i=0; i < statCount; i++) {
@@ -197,7 +195,7 @@ int snoopServer::makeArray(unsigned long *nVals)
 
   // Find out how many nodes
     dataNode::setNodeCount(0u);
-    pvList.traverse(dataNode::addToNodeCount);
+    pvList.traverse(&dataNode::addToNodeCount);
     *nVals=dataNode::getNodeCount();
 #if DEBUG_HASH
     print("nVals=%lu\n",*nVals);
@@ -212,7 +210,7 @@ int snoopServer::makeArray(unsigned long *nVals)
   // Fill the dataArray
     dataNode::setNodeCount(0u);
     dataNode::setDataArray(dataArray);
-    pvList.traverse(dataNode::addToDataArray);
+    pvList.traverse(&dataNode::addToDataArray);
     *nVals=dataNode::getNodeCount();
 
 #if DEBUG_HASH

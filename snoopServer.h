@@ -37,7 +37,11 @@
 #  define NELEMENTS(A) (sizeof(A)/sizeof(A[0]))
 #endif
 
-#define UNREFERENCED(x) (x)
+#ifdef __cplusplus
+#define NU(x)
+#else
+#define NU(x)=(x)
+#endif
 
 #include <string.h>
 #include <stdio.h>
@@ -76,11 +80,11 @@ class snoopServer;
 
 typedef struct _snoopServerStats
 {
-    char *name;
+    const char *name;
     char *pvName;
     snoopStat *pv;
     double initValue;
-    char *units;
+    const char *units;
     short precision;
 } snoopServerStats;
 
@@ -107,8 +111,8 @@ class snoopRateStatsTimer : public epicsTimerNotify
 class snoopRateStatsTimer : public osiTimer
 {
   public:
-    snoopRateStatsTimer(const osiTime &delay, snoopServer *m) : 
-      startTime(osiTime::getCurrent()), osiTimer(delay), interval(delay), 
+    snoopRateStatsTimer(const osiTime &delay, snoopServer *m) :
+      osiTimer(delay), interval(delay), startTime(osiTime::getCurrent()),
       serv(m) {}
     virtual void expire();
     virtual const osiTime delay() const { return interval; }
@@ -126,7 +130,7 @@ class snoopData
   public:
     snoopData();
     snoopData(const char *nameIn);
-    snoopData::snoopData(const snoopData &snoopDataIn);
+    snoopData(const snoopData &snoopDataIn);
     snoopData &operator=(const snoopData &snoopDataIn);
     const char *getName(void) const { return name; }
     void incrCount(void) { count++; }
@@ -201,7 +205,7 @@ class snoopServer : public caServer
     void processStat(int type,double val);
     void clearStat(int type);
     void initStats(char *prefix);
-    char *getPrefix(void) const { return statPrefix; }
+    const char *getPrefix(void) const { return statPrefix; }
 
     unsigned long getRequestCount() const { return requestCount; }
     unsigned long getIndividualCount() const { return individualCount; }
@@ -226,9 +230,9 @@ class snoopServer : public caServer
 
     snoopServerStats statTable[statCount];
     int doStats;
-    char *statPrefix;
+    const char *statPrefix;
     int statPrefixLength;
-    char *individualName;
+    const char *individualName;
     unsigned long requestCount;
     unsigned long individualCount;
 };

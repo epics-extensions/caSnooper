@@ -21,11 +21,8 @@ ifeq ($(CA_SNOOPERB),YES)
   EPICS_BASE = /home/phoebus/EVANS/epics/baseSnoop
 endif
 
-# Sun compatibility
-#USR_CXXFLAGS_solaris+=-compat=4
-# Needed for Motif functions using string literals for char * arguments
-# Weaker than -compat=4
-USR_CXXFLAGS_solaris += -features=no%conststrings
+# Use gcc
+#CPLUSPLUS=G++
 
 CXXCMPLR = STRICT
 
@@ -74,6 +71,8 @@ xxxx:
 	@echo CA_SNOOPERB: $(CA_SNOOPERB)
 	@echo caSnooperB_LIBS: $(caSnooperB_LIBS)
 	@echo PROD: $(PROD)
+	@echo CPLUSPLUS: $(CPLUSPLUS)
+	@echo CXXFLAGS: $(CXXFLAGS)
 
 # **************************** Emacs Editing Sequences *****************
 # Local Variables:
