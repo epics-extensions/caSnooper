@@ -69,3 +69,35 @@ void hsort(double array[], unsigned long  indx[], unsigned long n)
 	indx[i]=indxt;
     }
 }
+
+// timeStamp ///////////////////////////////////////////////////////////
+char *timeStamp(void)
+  // Gets current time and puts it in a static array
+  // The calling program should copy it to a safe place
+  //   e.g. strcpy(savetime,timestamp());
+{
+    static char timeStampStr[16];
+    long now;
+    struct tm *tblock;
+    
+    time(&now);
+    tblock=localtime(&now);
+    strftime(timeStampStr,20,"%b %d %H:%M:%S",tblock);
+    
+    return timeStampStr;
+}
+
+// timeSpec ////////////////////////////////////////////////////////////
+struct timespec *timeSpec(void)
+  // Gets current time and puts it in a static timespec struct
+  // For use by gdd::setTimeStamp, which will copy it
+{
+    static struct timespec ts;
+    osiTime osit(osiTime::getCurrent());
+  // EPICS is 20 years ahead of its time
+    ts.tv_sec=(time_t)osit.getSecTruncToLong()-631152000ul;
+    ts.tv_nsec=osit.getNSecTruncToLong();
+    
+    return &ts;
+}
+

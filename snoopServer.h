@@ -13,6 +13,12 @@
 #define DELIMITER '\t'
 #define CA_PEND_IO_TIME 30.
 
+#define DEFAULT_PREFIX "CaSnoop"
+#define PREFIX_SIZE 11
+
+#define statRequestRate  0
+#define statCount 1     // Number of statistics PVs
+
 #include <string.h>
 #include <stdio.h>
 
@@ -21,15 +27,45 @@
 #include "gddAppFuncTable.h"
 #include "osiTimer.h"
 #include "resourceLib.h"
+#include "snoopStat.h"
 
-class snoopServer;
-class snoopData;
-class snoopDataEx;
-class dataNode;
+struct snoopServerStats
+{
+    char* name;
+    char* pvName;
+    snoopStat* pv;
+    unsigned long* initValue;
+    char *units;
+    short precision;
+};
+typedef struct snoopServerStats;
 
 // Function prototypes
 int errMsg(const char *fmt, ...);
 void hsort(double array[], unsigned long  indx[], unsigned long n);
+char *timeStamp(void);
+struct timespec *timeSpec(void);
+
+class snoopRateStatsTimer;
+class snoopData;
+class dataNode;
+class snoopServer;
+
+class snoopRateStatsTimer : public osiTimer
+{
+  public:
+    snoopRateStatsTimer(const osiTime &delay, snoopServer *m) : 
+      startTime(osiTime::getCurrent()), osiTimer(delay), interval(delay), 
+      serv(m) {}
+    virtual void expire();
+    virtual const osiTime delay() const { return interval; }
+    virtual osiBool again() const { return osiTrue; }
+    virtual const char *name() const { return "snoopRateStatsTimer"; }
+  private:
+    osiTime interval;
+    osiTime startTime;
+    snoopServer* serv;
+};
 
 class snoopData
 {
@@ -84,7 +120,8 @@ class dataNode : public stringId, public tsSLNode<dataNode>
 class snoopServer : public caServer
 {
   public:
-    snoopServer(int nCheckIn, int nPrintIn, int nSigmaIn, double nLimitIn);
+    snoopServer(char *prefix, int nCheckIn, int nPrintIn, int nSigmaIn,
+      double nLimitIn);
     ~snoopServer(void);
     
     void enable(void) { enabled=1; }
@@ -97,7 +134,17 @@ class snoopServer : public caServer
     pvCreateReturn createPV(const casCtx &ctx, const char *pPvName);
     
     resTable<dataNode,stringId> *getPvList(void) { return &pvList; }
+
+    casEventMask getSelectMask(void) const { return selectMask; }
     
+    snoopServerStats *getStatTable(int type) { return &statTable[type]; }
+    void setStat(int type,double val);
+    void setStat(int type,unsigned long val);
+    void clearStat(int type);
+    void initStats(char *prefix);
+    unsigned long getRequestCount() const { return requestCount; }
+    char *getPrefix(void) const { return statPrefix; }
+
   private:
     int makeArray(unsigned long *nVals);
     int sortArray(unsigned long **index, unsigned long nVals);
@@ -110,4 +157,12 @@ class snoopServer : public caServer
     double nLimit;
     snoopData *dataArray;
     resTable<dataNode,stringId> pvList;
+
+    casEventMask selectMask;
+
+    snoopServerStats statTable[statCount];
+    int doStats;
+    char *statPrefix;
+    int statPrefixLength;	
+    unsigned long requestCount;
 };

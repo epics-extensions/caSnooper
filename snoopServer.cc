@@ -8,6 +8,8 @@
 #define DEBUG_SORT 0
 #define DEBUG_HASH 0
 
+#define ULONG_DIFF(n1,n2) (((n1) >= (n2))?((n1)-(n2)):((n1)+(ULONG_MAX-(n2))))
+
 // server.h is private and not in base/include.  We are including it
 // so we can access casCtx, which is not normally possible (by intent).
 #  define HOST_NAMESIZE 256
@@ -22,10 +24,10 @@ unsigned long dataNode::nodeCount=0;
 snoopData *dataNode::dataArray=(snoopData *)0;
 
 char connTable[][10]={
-    "Not",     /* cs_never_conn */
-    "Not",     /* cs_prev_conn */
-    "OK",      /* cs_conn */
-    "Not",     /* cs_closed */
+    "No",     /* cs_never_conn */
+    "No",     /* cs_prev_conn */
+    "Yes",    /* cs_conn */
+    "No",     /* cs_closed */
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -33,8 +35,11 @@ char connTable[][10]={
 ////////////////////////////////////////////////////////////////////////
 
 // snoopServer::snoopServer() //////////////////////////////////////////
-snoopServer::snoopServer(int nCheckIn, int nPrintIn, int nSigmaIn,
+snoopServer::snoopServer(char *prefix, int nCheckIn, int nPrintIn, int nSigmaIn,
   double nLimitIn) :
+    doStats(0),
+    statPrefix(0),
+    statPrefixLength(0),
     enabled(0),
     processTime(0.0),
     nCheck(nCheckIn),
@@ -43,7 +48,15 @@ snoopServer::snoopServer(int nCheckIn, int nPrintIn, int nSigmaIn,
     nLimit(nLimitIn),
     dataArray((snoopData *)0)
 {
+  // Initialize the PV list
     pvList.init(2048u);
+
+  // Initialize the stats
+    initStats(prefix);
+    requestCount=0u;
+
+  // Set the select mask to everything supported
+    selectMask=(alarmEventMask|valueEventMask|logEventMask);
 }
 
 // snoopServer::~snoopServer ///////////////////////////////////////////
@@ -53,8 +66,14 @@ snoopServer::~snoopServer(void)
     pvList.destroyAllEntries();
 }
 
+// snoopServer::clearStat //////////////////////////////////////////////
+void snoopServer::clearStat(int type)
+{
+	statTable[type].pv=NULL;
+}
+
 // snoopServer::pvExistTest ////////////////////////////////////////////
-pvExistReturn snoopServer::pvExistTest(const casCtx& ctxIn, const char *pPvName)
+pvExistReturn snoopServer::pvExistTest(const casCtx& ctxIn, const char *pvName)
 {
     casClient *pClient;
     pClient=(casClient *)ctxIn.getClient();
@@ -65,10 +84,11 @@ pvExistReturn snoopServer::pvExistTest(const casCtx& ctxIn, const char *pPvName)
 
   // Return if data taking is not enabled
     if(!enabled) return pverDoesNotExistHere;
+    requestCount++;
 
   // Make the hash name
     pClient->clientHostName(hostName,HOST_NAMESIZE);
-    strcpy(name,pPvName);
+    strcpy(name,pvName);
     len=strlen(name);
     name[len++]=DELIMITER;
     strncpy(name+len,hostName,NAMESIZE-len);
@@ -92,15 +112,35 @@ pvExistReturn snoopServer::pvExistTest(const casCtx& ctxIn, const char *pPvName)
 	    }
 	}
     }
+    
+  // Check for stat PVs
+    if(doStats) {
+	for(i=0; i < statCount; i++) {
+	    if(strcmp(pvName,statTable[i].pvName) == 0) {
+		return pverExistsHere;
+	    }
+	}
+    }
 
     return pverDoesNotExistHere;
 }
 
 // snoopServer::createPV ///////////////////////////////////////////////
-pvCreateReturn snoopServer::createPV(const casCtx &ctx, const char *pPvName)
+pvCreateReturn snoopServer::createPV(const casCtx &ctx, const char *pvName)
 {
     UNREFERENCED(ctx);
-    UNREFERENCED(pPvName);
+
+  // Create stat PVs
+    if(doStats) {
+	for(int i=0; i < statCount; i++) {
+	    if(strcmp(pvName,statTable[i].pvName)==0) {
+		if(statTable[i].pv==NULL)
+		  statTable[i].pv=new snoopStat(this,pvName,i);
+		
+		return pvCreateReturn(*statTable[i].pv);
+	    }
+	}
+    }
 
     return S_casApp_pvNotFound;
 }
@@ -253,7 +293,7 @@ void snoopServer::report(void)
     int nPrint0;
     if(nPrint == 0) nPrint0 = nNodes;
     else nPrint0=nPrint;
-    if(nPrint0 > nNodes) nPrint = nNodes;
+    if(nPrint0 > (int)nNodes) nPrint0 = (int)nNodes;
     if(nPrint0 > 0) {
 	if(!index) {
 	    status=sortArray(&index,nNodes);
@@ -308,7 +348,7 @@ void snoopServer::report(void)
     int nCheck0;
     if(nCheck == 0) nCheck0 = nNodes;
     else nCheck0=nCheck;
-    if(nCheck0 > nNodes) nCheck = nNodes;
+    if(nCheck0 > (int)nNodes) nCheck0 = (int)nNodes;
     if(nCheck0 > 0) {
 	if(!index) {
 	    status=sortArray(&index,nNodes);
@@ -391,6 +431,55 @@ void snoopServer::report(void)
     }
 }
 
+// snoopServer::initStat ///////////////////////////////////////////////
+void snoopServer::initStats(char *prefix)
+{
+    int i;
+    static unsigned long zero=0u;
+    
+  // Define the prefix for the server stats
+    if(!prefix) {
+	doStats=0;
+	return;
+    }
+
+    if(*prefix) {
+      // Use the specified one
+	statPrefix=prefix;
+    } else {
+	statPrefix=DEFAULT_PREFIX;
+    }
+    statPrefixLength=strlen(statPrefix);
+    doStats=1;
+    
+  // Set up PV names for server stats and fill them into the statTable
+    for(i=0;i<statCount;i++) {
+	switch(i) {
+	case statRequestRate:
+	    statTable[i].name="requestRate";
+	    statTable[i].initValue=&zero;
+	    statTable[i].units="Hz";
+	    statTable[i].precision=2;
+	    break;
+	}
+	
+	statTable[i].pvName=new char[statPrefixLength+1+strlen(statTable[i].name)+1];
+	sprintf(statTable[i].pvName,"%s.%s",statPrefix,statTable[i].name);
+	statTable[i].pv=NULL;
+    }
+}
+
+// snoopServer::setStat ////////////////////////////////////////////////
+void snoopServer::setStat(int type, double val)
+{
+    if(statTable[type].pv) statTable[type].pv->postData(val);
+}
+
+void snoopServer::setStat(int type, unsigned long val)
+{
+    if(statTable[type].pv) statTable[type].pv->postData(val);
+}
+
 // snoopServer::show ///////////////////////////////////////////////////
 void snoopServer::show(unsigned level) const
 {
@@ -461,8 +550,6 @@ int snoopServer::sortArray(unsigned long **index, unsigned long nVals)
     return rc;
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////
 //                   snoopData
 ////////////////////////////////////////////////////////////////////////
@@ -494,4 +581,43 @@ snoopData &snoopData::operator=(const snoopData &snoopDataIn)
 	strcpy(name,snoopDataIn.getName());
     }
     return *this;
+}
+
+////////////////////////////////////////////////////////////////////////
+//                   snoopRateStatsTimer
+////////////////////////////////////////////////////////////////////////
+
+// snoopRateStatsTimer::expire /////////////////////////////////////////
+void snoopRateStatsTimer::expire()
+{
+    static int first=1;
+    static osiTime prevTime;
+    osiTime curTime=osiTime::getCurrent();
+    double delTime;
+    static unsigned long rrPrevCount;
+    unsigned long rrCurCount=serv->getRequestCount();
+    double rrRate;
+    
+  // Initialize the first time
+    if(first) {
+	prevTime=curTime;
+	rrPrevCount=rrCurCount;
+	first=0;
+    }
+    delTime=(double)(curTime-prevTime);
+    
+  // Calculate the request rate
+    rrRate=(delTime > 0)?(double)(ULONG_DIFF(rrCurCount,rrPrevCount))/
+      delTime:0.0;
+    serv->setStat(statRequestRate,rrRate);
+    
+#if 0
+    printf("snoopRateStatsTimer::expire(): rrCurCount=%ld rrPrevCount=%ld rrRate=%g\n",
+      rrCurCount,rrPrevCount,rrRate);
+    fflush(stdout);
+#endif
+    
+  // Reset the values for previous
+    prevTime=curTime;
+    rrPrevCount=rrCurCount;
 }

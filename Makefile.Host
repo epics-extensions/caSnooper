@@ -1,4 +1,4 @@
-# Makefile.Host for Performance Test Example Server
+# Makefile.Host for CaSnooper
 
 TOP = ../../..
 include $(TOP)/config/CONFIG_EXTENSIONS
@@ -36,6 +36,7 @@ SYS_PROD_LIBS_WIN32 := ws2_32 advapi32 user32
 
 SRCS += caSnooper.cc
 SRCS += snoopServer.cc
+SRCS += snoopStat.cc
 SRCS += ut.cc
 
 PROD := caSnooper
@@ -43,6 +44,7 @@ PROD := caSnooper
 include $(TOP)/config/RULES.Host
 
 caSnooper$(OBJ) snoopServer$(OBJ) : ../snoopServer.h
+snoopStat$(OBJ) : ../snoopStat.h
 
 clean::
 	@$(RM) caSnooper

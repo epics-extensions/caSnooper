@@ -9,7 +9,9 @@
 #define NLIMIT_DEFAULT 0.0
 
 // Interval for rate statistics in seconds
-#define RATE_STATS_INTERVAL 10u
+#define RATE_STATS_INTERVAL 1u
+
+#define VERSION "CaSnooper 1.1"
 
 // Function prototypes
 extern int main(int argc, const char **argv);
@@ -21,11 +23,14 @@ void usage(const char *name);
 //
 extern int main(int argc, const char **argv)
 {
+    osiTime delay(0u,10000000u);     // (sec, nsec) (10 ms)
+    int doStats = 0;
     snoopServer *pCAS;
     unsigned debugLevel = 0u;
     float executionTime;
     float waitTime = 0.0;
     int forever = 1;
+    char *prefix = NULL;
     int nCheck = NCHECK_DEFAULT;
     int nPrint = NPRINT_DEFAULT;
     int nSigma = NSIGMA_DEFAULT;
@@ -49,8 +54,21 @@ extern int main(int argc, const char **argv)
 	if(sscanf(argv[i],"-p %d", &nPrint)==1) {
 	    continue;
 	}
+	if(!strncmp(argv[i],"-n",2)) {
+	    prefix=(char *)malloc(PREFIX_SIZE*sizeof(char));
+	    if(prefix) {
+		strncpy(prefix,&argv[i][2],PREFIX_SIZE);
+		prefix[PREFIX_SIZE-1]='\0';
+		doStats = 1;
+	    }
+	    continue;
+	}
 	if(sscanf(argv[i],"-s %d", &nSigma)==1) {
 	    continue;
+	}
+	if(!strcmp(argv[i], "-r")) {
+	    doStats = 1;
+	    return(0);
 	}
 	if(sscanf(argv[i],"-t %f", &executionTime)==1) {
 	    forever = aitFalse;
@@ -64,18 +82,19 @@ extern int main(int argc, const char **argv)
 	return(1);
     }
     
-    pCAS = new snoopServer(nCheck,nPrint,nSigma,nLimit);
+    pCAS = new snoopServer(prefix,nCheck,nPrint,nSigma,nLimit);
     if(!pCAS) {
 	return (-1);
     }
-    
     pCAS->setDebugLevel(debugLevel);
+    pCAS->disable();
     
   // Main loop
-    printf("Starting CaSnooper\n");
-    osiTime begin(osiTime::getCurrent());
-    pCAS->disable();
+    printf("Starting %s at %s\n",VERSION,timeStamp());
+    if(doStats) printf("PV name prefix is %s\n",pCAS->getPrefix());
 
+    osiTime begin(osiTime::getCurrent());
+    
   // Loop here until the specified wait time
     osiTime delay0(osiTime::getCurrent() - begin);
     osiTime wait(waitTime);
@@ -84,27 +103,29 @@ extern int main(int argc, const char **argv)
 	delay0 = osiTime::getCurrent() - begin;
     }
 
+  // Initialize stat counters
+    if(doStats) {
+	osiTime rateStatsDelay(RATE_STATS_INTERVAL,0u);
+	snoopRateStatsTimer *statTimer =
+	  new snoopRateStatsTimer(rateStatsDelay, pCAS);
+      // Call the expire routine to initialize it
+	statTimer->expire();
+    }
+    
   // Start the processing
+    double processedTime = 0.0;
     pCAS->enable();
     osiTime start(osiTime::getCurrent());
-    if(forever) {
-	osiTime	delay(1000u,0u);    // (sec,nsec)
-	while (aitTrue) {
-	    fileDescriptorManager.process(delay);
-	}
-    } else {
-      // Loop here until the specified execution time
-	osiTime total(executionTime);
-	osiTime delay(osiTime::getCurrent() - start);
-	while(delay < total) {
-	    fileDescriptorManager.process(delay);
-	    delay = osiTime::getCurrent() - start;
+    while (aitTrue) {
+	fileDescriptorManager.process(delay);
+	if(!forever) {
+	    processedTime=(double)(osiTime::getCurrent() - start);
+	    if(processedTime > executionTime) break;
 	}
     }
 
   // Print timing
-    double elapsedTime=(double)(osiTime::getCurrent() - begin);
-    double processedTime=elapsedTime+begin-start;
+    double elapsedTime=processedTime+start-begin;
     pCAS->setProcessTime(processedTime);
     printf("CaSnopper terminating after %.2f seconds [%.2f minutes]\n",
       elapsedTime,elapsedTime/60.);
@@ -129,10 +150,13 @@ void usage(const char *name)
       "    -h           Help (This message)\n"
       "    -l<decimal>  Print all requests over n Hz\n"
       "    -p<integer>  Print top n requests (0 means all)\n"
+      "    -n[<string>] Use string as prefix for internal PVs (%d chars max)\n"
+      "                   Default is: %s\n"
       "    -s<integer>  Print all requests over n sigma\n"
+      "    -r           Implement rate stat PVs\n"
       "    -t<decimal>  Run n seconds, then print report\n"
       "    -w<decimal>  Wait n sec before collecting data\n"
       "\n", 
-      name);
+      name,PREFIX_SIZE-1,DEFAULT_PREFIX);
 	
 }
