@@ -1,12 +1,12 @@
 
 file {
-	name="/home/phoebus5/EVANS/epics/extensions/src/caSnooper/snoopStats.adl"
+	name="/home/phoebus5/EVANS/src/medm/snoopStats.adl"
 	version=020306
 }
 display {
 	object {
-		x=517
-		y=45
+		x=522
+		y=69
 		width=445
 		height=391
 	}
@@ -113,7 +113,7 @@ text {
 		bclr=10
 	}
 	label="Report"
-	press_msg="1.0"
+	release_msg="1.0"
 }
 "message button" {
 	object {
@@ -128,7 +128,7 @@ text {
 		bclr=10
 	}
 	label="Reset"
-	press_msg="1.0"
+	release_msg="1.0"
 }
 "message button" {
 	object {
@@ -143,7 +143,7 @@ text {
 		bclr=10
 	}
 	label="Quit"
-	press_msg="1.0"
+	release_msg="1.0"
 }
 text {
 	object {
@@ -353,7 +353,7 @@ composite {
 				bclr=10
 			}
 			label="None"
-			press_msg="-1"
+			release_msg="-1"
 		}
 		"message button" {
 			object {
@@ -368,7 +368,7 @@ composite {
 				bclr=10
 			}
 			label="All"
-			press_msg="0"
+			release_msg="0"
 		}
 	}
 }
@@ -433,7 +433,7 @@ composite {
 				bclr=10
 			}
 			label="None"
-			press_msg="-1"
+			release_msg="-1"
 		}
 		"message button" {
 			object {
@@ -448,7 +448,7 @@ composite {
 				bclr=10
 			}
 			label="All"
-			press_msg="0"
+			release_msg="0"
 		}
 	}
 }
@@ -513,7 +513,7 @@ composite {
 				bclr=10
 			}
 			label="None"
-			press_msg="-1"
+			release_msg="-1"
 		}
 		"message button" {
 			object {
@@ -528,7 +528,7 @@ composite {
 				bclr=10
 			}
 			label="All"
-			press_msg="0"
+			release_msg="0"
 		}
 	}
 }
@@ -594,7 +594,7 @@ composite {
 				bclr=10
 			}
 			label="None"
-			press_msg="-1"
+			release_msg="-1"
 		}
 		"message button" {
 			object {
@@ -609,7 +609,7 @@ composite {
 				bclr=10
 			}
 			label="All"
-			press_msg="0"
+			release_msg="0"
 		}
 	}
 }
