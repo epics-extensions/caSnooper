@@ -6,6 +6,7 @@
 * This file is distributed subject to a Software License Agreement found
 * in the file LICENSE that is included with this distribution. 
 \*************************************************************************/
+
 // CaSnooper: Server that logs broadcasts
 
 #define DEBUG_TIME 0
@@ -100,7 +101,7 @@ extern int main(int argc, const char **argv)
     }
     
   // Start
-    print("Starting %s at %s\n",VERSION,timeStamp());
+    print("Starting %s at %s\n",CASNOOPER_VERSION_STRING,timeStamp());
     print("%s\n",EPICS_VERSION_STRING);
     if(doStats) print("PV name prefix is %s\n",prefix);
 

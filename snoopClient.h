@@ -6,6 +6,7 @@
 * This file is distributed subject to a Software License Agreement found
 * in the file LICENSE that is included with this distribution. 
 \*************************************************************************/
+
 // Class definitions for caSnooperB
 
 #define NAMESIZE 64
@@ -14,7 +15,7 @@
 #define SS_OK 0
 #define SS_ERROR -1
 
-#define VERSION "CaSnooperB 1.0"
+#include "caSnooperBVersion.h"
 
 #include "resourceLib.h"
 #include "caProto.h"

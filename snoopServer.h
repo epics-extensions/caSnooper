@@ -26,6 +26,8 @@
 // Interval for rate statistics in seconds
 #define RATE_STATS_INTERVAL 1u
 
+#include "caSnooperVersion.h"
+
 #define VERSION "CaSnooper 2.0"
 
 #define SS_OK 0

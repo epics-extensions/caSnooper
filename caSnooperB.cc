@@ -100,7 +100,7 @@ extern int main(int argc, char **argv)
     }
     
   // Main loop
-    print("Starting %s at %s\n",VERSION,timeStamp());
+    print("Starting %s at %s\n",CASNOOPERB_VERSION_STRING,timeStamp());
     osiTime begin(osiTime::getCurrent());
     
   // Start the processing
