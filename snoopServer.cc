@@ -195,7 +195,7 @@ int snoopServer::makeArray(unsigned long *nVals)
 
   // Find out how many nodes
     dataNode::setNodeCount(0u);
-    pvList.traverse(&dataNode::addToNodeCount);
+    pvList.traverse(dataNode::addToNodeCount);
     *nVals=dataNode::getNodeCount();
 #if DEBUG_HASH
     print("nVals=%lu\n",*nVals);

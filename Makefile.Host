@@ -22,7 +22,7 @@ ifeq ($(CA_SNOOPERB),YES)
 endif
 
 # Use gcc
-#CPLUSPLUS=G++
+CPLUSPLUS=G++
 
 CXXCMPLR = STRICT
 
