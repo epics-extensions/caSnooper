@@ -1,3 +1,11 @@
+/*************************************************************************\
+* Copyright (c) 2002 The University of Chicago, as Operator of Argonne
+* National Laboratory.
+* Copyright (c) 2002 The Regents of the University of California, as
+* Operator of Los Alamos National Laboratory.
+* This file is distributed subject to a Software License Agreement found
+* in the file LICENSE that is included with this distribution. 
+\*************************************************************************/
 // CaSnooper: Server that logs broadcasts
 
 #define DEBUG_TIME 0
@@ -93,7 +101,7 @@ extern int main(int argc, const char **argv)
     
   // Start
     print("Starting %s at %s\n",VERSION,timeStamp());
-    print("%s\n",BASE_VERSION_STRING);
+    print("%s\n",EPICS_VERSION_STRING);
     if(doStats) print("PV name prefix is %s\n",prefix);
 
   // Create the server
@@ -115,7 +123,7 @@ extern int main(int argc, const char **argv)
     print("delay0=%g wait=%g\n",delay0,wait);
 #endif
     while(delay0 < wait) {
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
 	fileDescriptorManager.process(delay0);
 #else
 	osiTime osiDelay(delay0);
@@ -129,7 +137,7 @@ extern int main(int argc, const char **argv)
 
   // Initialize stat counters
     if(doStats) {
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
       // Start a default timer queue
 	epicsTimerQueueActive &queue = 
 	  epicsTimerQueueActive::allocate(true);
@@ -159,7 +167,7 @@ extern int main(int argc, const char **argv)
     pCAS->enable();
     osiTime start(osiTime::getCurrent());
     while (aitTrue) {
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
 	fileDescriptorManager.process(delay);
 #else
 	osiTime osiDelay(delay);
@@ -213,5 +221,5 @@ void usage()
       "    -t<decimal>  Run n seconds, then print report\n"
       "    -w<decimal>  Wait n sec before collecting data\n"
       "\n", 
-      VERSION,BASE_VERSION_STRING,PREFIX_SIZE-1,DEFAULT_PREFIX);
+      VERSION,EPICS_VERSION_STRING,PREFIX_SIZE-1,DEFAULT_PREFIX);
 }

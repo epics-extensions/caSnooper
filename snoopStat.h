@@ -1,3 +1,11 @@
+/*************************************************************************\
+* Copyright (c) 2002 The University of Chicago, as Operator of Argonne
+* National Laboratory.
+* Copyright (c) 2002 The Regents of the University of California, as
+* Operator of Los Alamos National Laboratory.
+* This file is distributed subject to a Software License Agreement found
+* in the file LICENSE that is included with this distribution. 
+\*************************************************************************/
 // CaSnooper Statistics
 
 // Based on gateStat class for the Gateway
@@ -9,7 +17,7 @@
 
 #include "epicsVersion.h"
 
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
 #define WRITE_CONST const
 #else
 #define WRITE_CONST

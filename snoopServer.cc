@@ -1,3 +1,11 @@
+/*************************************************************************\
+* Copyright (c) 2002 The University of Chicago, as Operator of Argonne
+* National Laboratory.
+* Copyright (c) 2002 The Regents of the University of California, as
+* Operator of Los Alamos National Laboratory.
+* This file is distributed subject to a Software License Agreement found
+* in the file LICENSE that is included with this distribution. 
+\*************************************************************************/
 // CaSnooper: Server that logs broadcasts
 
 #include <math.h>
@@ -60,7 +68,7 @@ snoopServer::snoopServer(char *prefixIn, char *individualNameIn,
     dataArray((snoopData *)0)
 {
   // Initialize the PV list
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
   // No longer required
 #else
     pvList.init(2048u);
@@ -75,7 +83,7 @@ snoopServer::snoopServer(char *prefixIn, char *individualNameIn,
     requestCount=0u;
 
   // Set the select mask to everything supported
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
     selectMask=(alarmEventMask()|valueEventMask()|logEventMask());
 #else
     selectMask=(alarmEventMask|valueEventMask|logEventMask);
@@ -86,7 +94,7 @@ snoopServer::snoopServer(char *prefixIn, char *individualNameIn,
 snoopServer::~snoopServer(void)
 {
   // Clear the pvList
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
     pvList.traverse(dataNode::destroy);
 #else
     pvList.destroyAllEntries();
@@ -477,7 +485,7 @@ void snoopServer::report(void)
 void snoopServer::reset(void)
 {
   // Clear the pvList
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
     pvList.traverse(dataNode::destroy);
 #else
     pvList.destroyAllEntries();
@@ -743,7 +751,7 @@ snoopData &snoopData::operator=(const snoopData &snoopDataIn)
 ////////////////////////////////////////////////////////////////////////
 
 // snoopRateStatsTimer::expire /////////////////////////////////////////
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
 epicsTimerNotify::expireStatus
 snoopRateStatsTimer::expire(const epicsTime &curTime)
 {

@@ -1,3 +1,11 @@
+/*************************************************************************\
+* Copyright (c) 2002 The University of Chicago, as Operator of Argonne
+* National Laboratory.
+* Copyright (c) 2002 The Regents of the University of California, as
+* Operator of Los Alamos National Laboratory.
+* This file is distributed subject to a Software License Agreement found
+* in the file LICENSE that is included with this distribution. 
+\*************************************************************************/
 // Global utilities
 
 #define LPRINTF_SIZE 1024     // Danger: Fixed size
@@ -108,7 +116,7 @@ struct timespec *timeSpec(void)
     static struct timespec ts;
     osiTime osit(osiTime::getCurrent());
   // EPICS is 20 years ahead of its time
-#if BASE_REVISION > 13
+#if EPICS_REVISION > 13
     ts=osit;
 #else
     ts.tv_sec=(time_t)osit.getSecTruncToLong()-631152000ul;
