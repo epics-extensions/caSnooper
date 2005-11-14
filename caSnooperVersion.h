@@ -10,8 +10,8 @@
 /* caSnooperVersion.h *** Version information for CaSnooper */
 
 #define CASNOOPER_VERSION 2
-#define CASNOOPER_REVISION 2
-#define CASNOOPER_MODIFICATION 0
-#define CASNOOPER_UPDATE_LEVEL 1
+#define CASNOOPER_REVISION 1
+#define CASNOOPER_MODIFICATION 1
+#define CASNOOPER_UPDATE_LEVEL 0
 
-#define CASNOOPER_VERSION_STRING "CaSnooper 2.1.0.1 (8-27-2003)"
+#define CASNOOPER_VERSION_STRING "CaSnooper 2.1.1.0 (11-14-2005)"

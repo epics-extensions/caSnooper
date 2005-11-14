@@ -118,6 +118,7 @@ void snoopServer::clearStat(int type)
 pvExistReturn snoopServer::pvExistTest(const casCtx& ctx, const char *pvName)
 {
 #if EPICS_REVISION > 13
+  // Should not get here
     return pverDoesNotExistHere;
 #else
     casClient *pClient=(casClient *)ctx.getClient();
@@ -126,7 +127,7 @@ pvExistReturn snoopServer::pvExistTest(const casCtx& ctx, const char *pvName)
     if(!enabled) return pverDoesNotExistHere;
 
   // Get the caNetAddr
-    caNetAddr &addr=pClient->fetchRespAddr();
+    const caNetAddr &addr=pClient->fetchRespAddr();
 
     return pvExistTest(ctx,addr,pvName);
 #endif
