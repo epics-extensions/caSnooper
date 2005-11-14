@@ -26,7 +26,7 @@ endif
 
 CXXCMPLR = STRICT
 
-HOST_OPT=NO
+#HOST_OPT=NO
 
 # The following is necessary to include server.h to get to casCtx
 USR_CXXFLAGS += -DcaNetAddrSock
