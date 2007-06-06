@@ -70,8 +70,8 @@ xxxx:
 	@echo EPICS_BASE: $(EPICS_BASE)
 	@echo CA_SNOOPERB: $(CA_SNOOPERB)
 	@echo caSnooperB_LIBS: $(caSnooperB_LIBS)
-	@echo PROD: $(PROD)
-	@echo CPLUSPLUS: $(CPLUSPLUS)
+	@echo PROD_HOST: $(PROD_HOST)
+	@echo CCC: $(CCC)
 	@echo CXXFLAGS: $(CXXFLAGS)
 
 # **************************** Emacs Editing Sequences *****************
