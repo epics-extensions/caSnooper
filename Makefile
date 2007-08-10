@@ -70,7 +70,7 @@ xxxx:
 	@echo EPICS_BASE: $(EPICS_BASE)
 	@echo CA_SNOOPERB: $(CA_SNOOPERB)
 	@echo caSnooperB_LIBS: $(caSnooperB_LIBS)
-	@echo PROD_HOST: $(PROD_HOST)
+	@echo PROD: $(PROD)
 	@echo CCC: $(CCC)
 	@echo CXXFLAGS: $(CXXFLAGS)
 
