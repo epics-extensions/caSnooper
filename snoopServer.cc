@@ -699,12 +699,12 @@ int snoopServer::sortArray(unsigned long **index, unsigned long nVals)
     if(!*index) {
 	errMsg("snoopServer::sortArray: Cannot allocate space for index");
 	rc=SS_ERROR;
-	goto ERR;
+	goto HANDLE_ERROR;
     }
     if(!vals) {
 	errMsg("snoopServer::sortArray: Cannot allocate space for values");
 	rc=SS_ERROR;
-	goto ERR;
+	goto HANDLE_ERROR;
     }
 
   // Fill the vals array
@@ -725,7 +725,7 @@ int snoopServer::sortArray(unsigned long **index, unsigned long nVals)
 
     goto CLEAN;
 
-  ERR:
+  HANDLE_ERROR:
     if(*index) {
 	delete *index;
 	*index=0;
