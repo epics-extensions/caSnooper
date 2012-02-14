@@ -138,7 +138,7 @@ pvExistReturn snoopServer::pvExistTest(const casCtx& ctx, const caNetAddr& addr,
   const char* pvName)
 {
     char hostName[HOST_NAMESIZE]="";
-    char name[NAMESIZE]="";
+    char name[NAMESIZE+HOST_NAMESIZE]="";
     dataNode *node=(dataNode *)0;
     int i=0,len;
 
@@ -149,7 +149,8 @@ pvExistReturn snoopServer::pvExistTest(const casCtx& ctx, const caNetAddr& addr,
   // Make the hash name
     struct sockaddr_in inaddr=(struct sockaddr_in)addr;
     ipAddrToA(&inaddr,hostName,HOST_NAMESIZE);
-    strcpy(name,pvName);
+    if(strlen(pvName) > NAMESIZE-1) printf("Extra long pv name; truncating %s\n", pvName);
+    strncpy(name,pvName,NAMESIZE-1);
     len=strlen(name);
     name[len++]=DELIMITER;
     strncpy(name+len,hostName,NAMESIZE-len);
