@@ -472,13 +472,6 @@ void snoopServer::report(void)
       // Wait
 	ca_pend_io(CA_PEND_IO_TIME);
 	
-      // Close CA
-	status=ca_task_exit();
-	if(status != ECA_NORMAL) {
-	    errMsg("snoopServer::report: "
-	      "ca_task_exit failed:\n%s",ca_message(status));
-	}
-
       // Print results
 	for(i=0; i < nCheck0; i++) {
 	    ii=index[i];
@@ -490,6 +483,13 @@ void snoopServer::report(void)
 	      connTable[ca_state(pChid[i])],
 	      dataArray[ii].getCount()/processTime);
 	}
+      // Close CA
+	status=ca_task_exit();
+	if(status != ECA_NORMAL) {
+	    errMsg("snoopServer::report: "
+	      "ca_task_exit failed:\n%s",ca_message(status));
+	}
+
     }
 
   CLEANUP:
